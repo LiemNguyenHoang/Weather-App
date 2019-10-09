@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">WT</string>
+    <string name="helo">Hello</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hello_hourly">Hello Hourly</string>
+    <string name="hello_daily">Hello Daily</string>
+    <string name="hello_now">Hello Now</string>
+</resources>
