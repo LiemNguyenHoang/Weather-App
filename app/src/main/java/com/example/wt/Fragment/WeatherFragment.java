@@ -1,103 +1,71 @@
-package com.example.wt;
+package com.example.wt.Fragment;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.viewpager.widget.ViewPager;
 
 import android.os.Bundle;
-import android.util.Log;
 
-import com.example.wt.Adapter.ViewPagerAdapter;
-import com.example.wt.Fragment.MapFragment;
-import com.example.wt.Fragment.HistoryFragment;
-import com.example.wt.Fragment.WeatherFragment;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import com.example.wt.Adapter.DetaiWeatherAdapter;
 import com.example.wt.Model.City;
 import com.example.wt.Model.Coords;
 import com.example.wt.Model.DetailWeather;
 import com.example.wt.Model.Mains;
 import com.example.wt.Model.Weathers;
 import com.example.wt.Model.Winds;
+import com.example.wt.R;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
-    City city;
-    HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap;
-
-    TabLayout tabLayout;
-    ViewPager viewPager;
-    Toolbar toolbar;
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class WeatherFragment extends Fragment {
+    private RecyclerView rv_weather;
+    private DetaiWeatherAdapter detaiWeatherAdapter;
+    private ArrayList<DetailWeather> detailWeatherArrayList;
     FirebaseFirestore db;
 
+    public WeatherFragment() {
+        // Required empty public constructor
+    }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        db = FirebaseFirestore.getInstance();
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_weather, container, false);
+        // Inflate the layout for this fragment
+        rv_weather = view.findViewById(R.id.rv_weather);
+        detailWeatherArrayList = new ArrayList<>();
+//        detailWeatherArrayList.add(new DetailWeather("say la la"));
+//        detailWeatherArrayList.add(new DetailWeather("say"));
+//        detailWeatherArrayList.add(new DetailWeather(" la la"));
+//        detailWeatherArrayList.add(new DetailWeather("say  la"));
+//        detailWeatherArrayList.add(new DetailWeather("say l"));
+//        detailWeatherArrayList.add(new DetailWeather("say a"));
+//        detailWeatherArrayList.add(new DetailWeather("say al"));
 
-        tabLayout = findViewById(R.id.tab_layout);
-        viewPager = findViewById(R.id.view_paper);
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), detailWeatherArrayList);
+        rv_weather.setAdapter(detaiWeatherAdapter);
 
-        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), 0);
-        viewPagerAdapter.AddFragment(new WeatherFragment(), "WEATHER");
-        viewPagerAdapter.AddFragment(new HistoryFragment(), "HISTORY");
-        viewPagerAdapter.AddFragment(new MapFragment(), "MAP");
 
-        viewPager.setAdapter(viewPagerAdapter);
-        tabLayout.setupWithViewPager(viewPager);
 
-        // Lấy locate cửa từng user trong Users
-        /*
-        ArrayList<String> arrayListLocate = new ArrayList<>();
-        arrayListLocate = getArrayLocate("12345");
-        */
-
-        // Lấy weather theo time
-        String locate = "Bình Phước",
+        final String locate = "Bình Phước",
                 date = "9-10-2019";
-        getArrayWeather(locate, date);
-        int i = 0;
-    }
-
-    public ArrayList<String> getArrayLocate(String id) {
-        db.collection("Users").document(id)
-                .addSnapshotListener(new EventListener<DocumentSnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
-                        if (e != null) {
-                            Log.w("A", "Listen failed.", e);
-                            return;
-                        }
-                        Map<String, Object> map = documentSnapshot.getData(); // lưu date vào mảng
-                        Log.d("asd", map.get("1").toString());
-                        String s = map.get("1").toString();
-                        if (documentSnapshot != null && documentSnapshot.exists()) {
-                            Log.d("A", "Current data: " + documentSnapshot.getData());
-                        } else {
-                            Log.d("A", "Current data: null");
-                        }
-                    }
-                });
-
-        return null;
-    }
-
-    public void getArrayWeather(String locate, String date) {
+        db = FirebaseFirestore.getInstance();
         DocumentReference docRef = db.collection("Cities").document(locate).collection(date).document("forecast");
-
-
         docRef.get()
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
@@ -114,9 +82,28 @@ public class MainActivity extends AppCompatActivity {
                             ArrayList<Object> arrayList = (ArrayList<Object>) map.get("list");
                             HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = fetchTimeOfDate(arrayList);
 
+// =======================================================================================================================================
+                            // mỗi card view là một locate
+                            HashMap<String, HashMap<String, ArrayList<DetailWeather>>> weatherLocateHashMap;
+                            {
+                                weatherLocateHashMap   = new HashMap<>();
+
+                                weatherLocateHashMap.put(locate,detailWeatherHashMap);
+                            }
+// =======================================================================================================================================
+
+
+
+                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-14").get(0));
+                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-13").get(0));
+                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-12").get(0));
+                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-11").get(0));
+                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-10").get(0));
+                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-09").get(0));
+
+                                    detaiWeatherAdapter.notifyDataSetChanged();
                             int i = 0;
 
-                            setData(city, detailWeatherHashMap);
                         } else {
                             Log.d("error", "No document!");
                         }
@@ -124,11 +111,38 @@ public class MainActivity extends AppCompatActivity {
                 });
 
 
+
+
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+        rv_weather.setLayoutManager(linearLayoutManager);
+        return view;
     }
 
-    private void setData(City city, HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap) {
-        this.city = city;
-        this.detailWeatherHashMap = detailWeatherHashMap;
+
+    public City getCity(HashMap<String, Object> hashMap) {
+        String country = "",
+                id = "",
+                name = "",
+                sunrise = "",
+                sunset = "",
+                timezone = "",
+                lon = "",
+                lat = "";
+        country = (String) hashMap.get("country");
+        id = hashMap.get("id").toString();
+        name = (String) hashMap.get("name");
+        sunrise = hashMap.get("sunrise").toString();
+        sunset = hashMap.get("sunset").toString();
+        timezone = hashMap.get("timezone").toString();
+
+        HashMap<String, Object> hashMap1 = new HashMap<>();
+        hashMap1 = (HashMap<String, Object>) hashMap.get("coord");
+        lon = hashMap1.get("lon").toString();
+        lat = hashMap1.get("lat").toString();
+        Coords coords = new Coords(lon, lat);
+
+        return new City(coords, country, name, sunrise, sunset, timezone);
     }
 
 
@@ -199,31 +213,5 @@ public class MainActivity extends AppCompatActivity {
         Mains mains = new Mains(hum, pre, tem, tempMax, tempMin);
 
         return new DetailWeather(dt_txt, clouds, rain, weathers, winds, mains);
-    }
-
-    // Lấy toàn bộ data của city
-    public City getCity(HashMap<String, Object> hashMap) {
-        String country = "",
-                id = "",
-                name = "",
-                sunrise = "",
-                sunset = "",
-                timezone = "",
-                lon = "",
-                lat = "";
-        country = (String) hashMap.get("country");
-        id = hashMap.get("id").toString();
-        name = (String) hashMap.get("name");
-        sunrise = hashMap.get("sunrise").toString();
-        sunset = hashMap.get("sunset").toString();
-        timezone = hashMap.get("timezone").toString();
-
-        HashMap<String, Object> hashMap1 = new HashMap<>();
-        hashMap1 = (HashMap<String, Object>) hashMap.get("coord");
-        lon = hashMap1.get("lon").toString();
-        lat = hashMap1.get("lat").toString();
-        Coords coords = new Coords(lon, lat);
-
-        return new City(coords, country, name, sunrise, sunset, timezone);
     }
 }

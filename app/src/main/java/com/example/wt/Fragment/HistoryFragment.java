@@ -14,10 +14,10 @@ import com.example.wt.R;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class HourlyFragment extends Fragment {
+public class HistoryFragment extends Fragment {
 
 
-    public HourlyFragment() {
+    public HistoryFragment() {
         // Required empty public constructor
     }
 
@@ -26,7 +26,7 @@ public class HourlyFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_hourly, container, false);
+        return inflater.inflate(R.layout.fragment_history, container, false);
     }
 
 }
