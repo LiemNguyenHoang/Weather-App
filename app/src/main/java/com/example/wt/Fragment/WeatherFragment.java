@@ -16,6 +16,7 @@ import com.example.wt.Adapter.DetaiWeatherAdapter;
 import com.example.wt.Model.City;
 import com.example.wt.Model.Coords;
 import com.example.wt.Model.DetailWeather;
+import com.example.wt.Model.ListOfWeather;
 import com.example.wt.Model.Mains;
 import com.example.wt.Model.Weathers;
 import com.example.wt.Model.Winds;
@@ -35,7 +36,7 @@ import java.util.Map;
 public class WeatherFragment extends Fragment {
     private RecyclerView rv_weather;
     private DetaiWeatherAdapter detaiWeatherAdapter;
-    private ArrayList<DetailWeather> detailWeatherArrayList;
+    private ArrayList<ListOfWeather> listOfWeathers;
     FirebaseFirestore db;
 
     public WeatherFragment() {
@@ -48,7 +49,7 @@ public class WeatherFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_weather, container, false);
         // Inflate the layout for this fragment
         rv_weather = view.findViewById(R.id.rv_weather);
-        detailWeatherArrayList = new ArrayList<>();
+        listOfWeathers = new ArrayList<>();
 //        detailWeatherArrayList.add(new DetailWeather("say la la"));
 //        detailWeatherArrayList.add(new DetailWeather("say"));
 //        detailWeatherArrayList.add(new DetailWeather(" la la"));
@@ -57,13 +58,13 @@ public class WeatherFragment extends Fragment {
 //        detailWeatherArrayList.add(new DetailWeather("say a"));
 //        detailWeatherArrayList.add(new DetailWeather("say al"));
 
-        detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), detailWeatherArrayList);
+        final String locate = "Bình Phước",
+                date = "9-10-2019";
+        detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
         rv_weather.setAdapter(detaiWeatherAdapter);
 
 
 
-        final String locate = "Bình Phước",
-                date = "9-10-2019";
         db = FirebaseFirestore.getInstance();
         DocumentReference docRef = db.collection("Cities").document(locate).collection(date).document("forecast");
         docRef.get()
@@ -84,22 +85,22 @@ public class WeatherFragment extends Fragment {
 
 // =======================================================================================================================================
                             // mỗi card view là một locate
-                            HashMap<String, HashMap<String, ArrayList<DetailWeather>>> weatherLocateHashMap;
-                            {
-                                weatherLocateHashMap   = new HashMap<>();
-
-                                weatherLocateHashMap.put(locate,detailWeatherHashMap);
-                            }
+//                            HashMap<String, HashMap<String, ArrayList<DetailWeather>>> weatherLocateHashMap;
+//                            {
+//                                weatherLocateHashMap   = new HashMap<>();
+//
+//                                weatherLocateHashMap.put(locate,detailWeatherHashMap);
+//                            }
 // =======================================================================================================================================
 
 
-
-                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-14").get(0));
-                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-13").get(0));
-                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-12").get(0));
-                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-11").get(0));
-                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-10").get(0));
-                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-09").get(0));
+//
+                            listOfWeathers.add(new ListOfWeather(city,detailWeatherHashMap));
+//                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-13").get(0));
+//                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-12").get(0));
+//                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-11").get(0));
+//                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-10").get(0));
+//                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-09").get(0));
 
                                     detaiWeatherAdapter.notifyDataSetChanged();
                             int i = 0;
@@ -214,4 +215,5 @@ public class WeatherFragment extends Fragment {
 
         return new DetailWeather(dt_txt, clouds, rain, weathers, winds, mains);
     }
+
 }

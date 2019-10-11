@@ -1,68 +1,33 @@
 package com.example.wt.Model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
-public class ListOfWeather extends HashMap<String, Object> {
-    private String Dt_txt;
-    private  Object  Clouds,Main,Rain,Weather,Wind;
+public class ListOfWeather  {
+    private City city;
+    private  HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap;
 
-//    public ListOfWeather() {
-//    }
-//
-//    public ListOfWeather(String dt_txt, Object clouds, Object main, Object rain, Object weather, Object wind) {
-//        Dt_txt = dt_txt;
-//        Clouds = clouds;
-//        Main = main;
-//        Rain = rain;
-//        Weather = weather;
-//        Wind = wind;
-//    }
-
-    public String getDt_txt() {
-        return Dt_txt;
+    public ListOfWeather() {
     }
 
-    public void setDt_txt(String dt_txt) {
-        Dt_txt = dt_txt;
+    public ListOfWeather(City city, HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap) {
+        this.city = city;
+        this.detailWeatherHashMap = detailWeatherHashMap;
     }
 
-    public Object getClouds() {
-        return Clouds;
+    public City getCity() {
+        return city;
     }
 
-    public void setClouds(Object clouds) {
-        Clouds = clouds;
+    public void setCity(City city) {
+        this.city = city;
     }
 
-    public Object getMain() {
-        return Main;
+    public HashMap<String, ArrayList<DetailWeather>> getDetailWeatherHashMap() {
+        return detailWeatherHashMap;
     }
 
-    public void setMain(Object main) {
-        Main = main;
-    }
-
-    public Object getRain() {
-        return Rain;
-    }
-
-    public void setRain(Object rain) {
-        Rain = rain;
-    }
-
-    public Object getWeather() {
-        return Weather;
-    }
-
-    public void setWeather(Object weather) {
-        Weather = weather;
-    }
-
-    public Object getWind() {
-        return Wind;
-    }
-
-    public void setWind(Object wind) {
-        Wind = wind;
+    public void setDetailWeatherHashMap(HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap) {
+        this.detailWeatherHashMap = detailWeatherHashMap;
     }
 }
