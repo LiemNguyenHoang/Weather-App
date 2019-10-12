@@ -187,7 +187,7 @@ public class WeatherFragment extends Fragment {
         String clouds = hashMapClouds.get("all").toString();
 
         HashMap<String, Object> hashMapRains = (HashMap<String, Object>) hashMap.get("rain");
-        String rain = "";
+        String rain = "0";
         if (hashMapRains != null) {
             rain = hashMapRains.get("3h").toString();
         }
