@@ -51,9 +51,14 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
         final City city = listOfWeathers.get(position).getCity();
         this.detailWeather = listOfWeathers.get(position).getDetailWeatherHashMap();
 
-        // Tách lấy time của từng date
-        String date = "2019-10-11";
-        final ArrayList<DetailWeather> listCurrent = detailWeather.get(date);
+        // Start: Tách lấy time của từng date đã sắp xếp
+        ArrayList<String> listKey = new ArrayList<>(); // list get entire key
+        for (String key : detailWeather.keySet()) {
+            listKey.add(key);
+        }
+        Collections.sort(listKey);
+        // End
+        final ArrayList<DetailWeather> listCurrent = detailWeather.get(listKey.get(0));
 
 
         final int nWeather = listCurrent.size();
@@ -80,7 +85,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
         holder.seekTime.setMax(nWeather - 1);
         // show display at position 0
         holder.tvLocate.setText(city.getName());
-        holder.tvTime.setText(listCurrent.get(0).getDt_txt().split(" ")[0]);
+
         showDisplay(listCurrent.get(0), holder);
         // show display for date forecast
         showForecast(this.detailWeather, holder);
@@ -204,7 +209,12 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
     }
 
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Show display của date forecast
+    public void showCurrent(ArrayList<DetailWeather> listCurrent, DetailWeatherViewHolder holder) {
+
+
+    }
+
+    // Show display của date forecast
     public void showForecast(HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap, DetailWeatherViewHolder holder) {
         ArrayList<String> listKey = new ArrayList<>(); // list get entire key
         for (String key : detailWeatherHashMap.keySet()) {
@@ -214,8 +224,12 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
 
         // show weather của date 1 kế tiếp
         {
+            // Show date của current
+            ArrayList<DetailWeather> listOfWeathers = detailWeatherHashMap.get(listKey.get(0));
+            holder.tvTime.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0]);
+
             // Ngày 1
-            ArrayList<DetailWeather> listOfWeathers = detailWeatherHashMap.get(listKey.get(1));
+            listOfWeathers = detailWeatherHashMap.get(listKey.get(1));
             int tempMax_1 = getTempMaxDate(listOfWeathers);
             int tempMmin_1 = getTempDateMin(listOfWeathers);
             String getWeather = getWeatherDate(listOfWeathers);

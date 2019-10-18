@@ -22,12 +22,17 @@ import com.example.wt.Model.Weathers;
 import com.example.wt.Model.Winds;
 import com.example.wt.R;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,9 +43,31 @@ public class WeatherFragment extends Fragment {
     private DetaiWeatherAdapter detaiWeatherAdapter;
     private ArrayList<ListOfWeather> listOfWeathers;
     FirebaseFirestore db;
+    String locate, date;
 
     public WeatherFragment() {
         // Required empty public constructor
+    }
+
+    public ArrayList<String> getLocate(ArrayList<Object> list) {
+        HashMap<String, ArrayList<String>> hashMapLocate = new HashMap<>();
+        for (int i = 0; i < list.size(); i++) {
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) list.get(i);
+            ArrayList<String> listKey = new ArrayList<>();
+            for (String key : hashMap.keySet()) {
+                listKey.add(key);
+            }
+            hashMapLocate.put((String) hashMap.get(listKey.get(0)), listKey);
+        }
+        // End
+        // Start: lấy list locate
+        ArrayList<String> listLocate = new ArrayList<>();
+        for (String string : hashMapLocate.keySet()) {
+            listLocate.add(string);
+        }
+        // End
+
+        return listLocate;
     }
 
     @Override
@@ -50,24 +77,127 @@ public class WeatherFragment extends Fragment {
         // Inflate the layout for this fragment
         rv_weather = view.findViewById(R.id.rv_weather);
         listOfWeathers = new ArrayList<>();
-//        detailWeatherArrayList.add(new DetailWeather("say la la"));
-//        detailWeatherArrayList.add(new DetailWeather("say"));
-//        detailWeatherArrayList.add(new DetailWeather(" la la"));
-//        detailWeatherArrayList.add(new DetailWeather("say  la"));
-//        detailWeatherArrayList.add(new DetailWeather("say l"));
-//        detailWeatherArrayList.add(new DetailWeather("say a"));
-//        detailWeatherArrayList.add(new DetailWeather("say al"));
 
-        final String locate = "Bình Phước",
-                date = "9-10-2019";
         detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
         rv_weather.setAdapter(detaiWeatherAdapter);
 
 
+        db = FirebaseFirestore.getInstance();
+        CollectionReference colRef = db.collection("12345");//.document("12345");//.collection(date).document("forecast");
+        colRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (queryDocumentSnapshots.isEmpty()) {
+                    Log.d("error", "Collection is empty");
+                } else {
+                    // Start: Lấy date của locate
+                    ArrayList<Object> list = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
+                    ArrayList<String> listLocate = getLocate(list);
+                    // End
+                    date="10-10-2019";
+                    for(String locate:listLocate){
+                        getWeather(locate,date);
+                    }
+                    int i = 0;
 
+
+                }
+            }
+        });
+//
+//        int i = 0;
+
+
+//                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+//                    @Override
+//                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+//                        if (queryDocumentSnapshots.isEmpty()) {
+//                            Query query = queryDocumentSnapshots.getQuery();
+//                            query.get
+//                            Map<String, Object> map = documentSnapshot.getData();
+//                            Object object = documentSnapshot.getData();
+//                            int i = 0;
+//
+//                            // Lấy toàn bộ data của city
+//                            String s = map.get("city").getClass().toString();
+//                            CityForecast city = getCityForecast((HashMap<String, Object>) map.get("city"));
+//
+//                            // lấy toàn bộ data của list
+//                            ArrayList<Object> arrayList = (ArrayList<Object>) map.get("list");
+//                            HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = fetchTimeOfDate(arrayList);
+//                            listOfWeathers.add(new ListOfWeather(city, detailWeatherHashMap));
+//                            detaiWeatherAdapter.notifyDataSetChanged();
+//                        } else {
+//                            Log.d("error", "No document!");
+//                        }
+//                    }
+//                });
+//                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+//                    @Override
+//                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+//
+//                        if (documentSnapshot.exists()) {
+//                            Map<String, Object> map = documentSnapshot.getData();
+//                            Object object = documentSnapshot.getData();
+//                            int i = 0;
+//
+//                            // Lấy toàn bộ data của city
+//                            String s = map.get("city").getClass().toString();
+//                            CityForecast city = getCityForecast((HashMap<String, Object>) map.get("city"));
+//
+//                            // lấy toàn bộ data của list
+//                            ArrayList<Object> arrayList = (ArrayList<Object>) map.get("list");
+//                            HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = fetchTimeOfDate(arrayList);
+//                            listOfWeathers.add(new ListOfWeather(city, detailWeatherHashMap));
+//                            detaiWeatherAdapter.notifyDataSetChanged();
+//                        } else {
+//                            Log.d("error", "No document!");
+//                        }
+//                    }
+//                });
+
+//        docRef = db.collection("Cities").document("Bình Định").collection(date).document("forecast");
+//        docRef
+//                .get()
+//                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+//                    @Override
+//                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+//                        if (documentSnapshot.exists()) {
+//                            Map<String, Object> map = documentSnapshot.getData();
+//
+//                            // Lấy toàn bộ data của city
+//                            String s = map.get("city").getClass().toString();
+//                            CityForecast city = getCityForecast((HashMap<String, Object>) map.get("city"));
+//
+//
+//                            // lấy toàn bộ data của list
+//                            ArrayList<Object> arrayList = (ArrayList<Object>) map.get("list");
+//                            HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = fetchTimeOfDate(arrayList);
+//
+//                            listOfWeathers.add(new ListOfWeather(city, detailWeatherHashMap));
+//                            detaiWeatherAdapter.notifyDataSetChanged();
+//                        } else {
+//                            Log.d("error", "No document!");
+//                        }
+//                    }
+//                });
+//        getWeather(locate, date);
+//        date="9-10-2019";
+//        locate = "Bình Định";
+//        getWeather(locate, date);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+        rv_weather.setLayoutManager(linearLayoutManager);
+        return view;
+    }
+
+    int i = 0;
+
+    public void getWeather(String locate, String date) {
         db = FirebaseFirestore.getInstance();
         DocumentReference docRef = db.collection("Cities").document(locate).collection(date).document("forecast");
-        docRef.get()
+        docRef
+                .get()
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
@@ -78,48 +208,17 @@ public class WeatherFragment extends Fragment {
                             String s = map.get("city").getClass().toString();
                             City city = getCity((HashMap<String, Object>) map.get("city"));
 
-
                             // lấy toàn bộ data của list
                             ArrayList<Object> arrayList = (ArrayList<Object>) map.get("list");
                             HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = fetchTimeOfDate(arrayList);
-
-// =======================================================================================================================================
-                            // mỗi card view là một locate
-//                            HashMap<String, HashMap<String, ArrayList<DetailWeather>>> weatherLocateHashMap;
-//                            {
-//                                weatherLocateHashMap   = new HashMap<>();
-//
-//                                weatherLocateHashMap.put(locate,detailWeatherHashMap);
-//                            }
-// =======================================================================================================================================
-
-
-//
-                            listOfWeathers.add(new ListOfWeather(city,detailWeatherHashMap));
-//                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-13").get(0));
-//                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-12").get(0));
-//                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-11").get(0));
-//                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-10").get(0));
-//                            detailWeatherArrayList.add(detailWeatherHashMap.get("2019-10-09").get(0));
-
-                                    detaiWeatherAdapter.notifyDataSetChanged();
-                            int i = 0;
-
+                            listOfWeathers.add(new ListOfWeather(city, detailWeatherHashMap));
+                            detaiWeatherAdapter.notifyDataSetChanged();
                         } else {
                             Log.d("error", "No document!");
                         }
                     }
                 });
-
-
-
-
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
-        rv_weather.setLayoutManager(linearLayoutManager);
-        return view;
     }
-
 
     public City getCity(HashMap<String, Object> hashMap) {
         String country = "",
