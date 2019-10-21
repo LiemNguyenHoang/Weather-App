@@ -205,7 +205,70 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
         holder.tvWind.setText(detailWeather.getWind().getSpeed());
         holder.tvCurrentTime.setText(detailWeather.getDt_txt().split(" ")[1]);
 
-        // show weather của 5 date tiếp theo
+        // show image
+        holder.imgWeather.setImageResource(getImage(detailWeather.getWeather().getIcon()));
+    }
+
+    public int getImage(String string) {
+        int result = 0;
+
+        switch (string) {
+            case "01d":
+                result = R.drawable.i01;
+                break;
+            case "02d":
+                result = R.drawable.i02;
+                break;
+            case "03d":
+                result = R.drawable.i03;
+                break;
+            case "04d":
+                result = R.drawable.i04;
+                break;
+            case "09d":
+                result = R.drawable.i09;
+                break;
+            case "10d":
+                result = R.drawable.i10;
+                break;
+            case "11d":
+                result = R.drawable.i11;
+                break;
+            case "13d":
+                result = R.drawable.i13;
+                break;
+            case "50d":
+                result = R.drawable.i50;
+                break;
+            case "01n":
+                result = R.drawable.i01;
+                break;
+            case "02n":
+                result = R.drawable.i02;
+                break;
+            case "03n":
+                result = R.drawable.i03;
+                break;
+            case "04n":
+                result = R.drawable.i04;
+                break;
+            case "09n":
+                result = R.drawable.i09;
+                break;
+            case "10n":
+                result = R.drawable.i10;
+                break;
+            case "11n":
+                result = R.drawable.i11;
+                break;
+            case "13n":
+                result = R.drawable.i13;
+                break;
+            case "50n":
+                result = R.drawable.i50;
+                break;
+        }
+        return result;
     }
 
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -236,6 +299,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             holder.tvDate1.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0] + "|" + getWeather);
             holder.tvTemp1_1.setText(tempMax_1 + "");
             holder.tvTemp1_2.setText(tempMmin_1 + "");
+            holder.img1.setImageResource(getImage(getWeather));
 
             // Ngày 2
             listOfWeathers = detailWeatherHashMap.get(listKey.get(2));
@@ -245,6 +309,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             holder.tvDate2.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0] + "|" + getWeather);
             holder.tvTemp2_1.setText(tempMax_1 + "");
             holder.tvTemp2_2.setText(tempMmin_1 + "");
+            holder.img2.setImageResource(getImage(getWeather));
 
             // Ngày 3
             listOfWeathers = detailWeatherHashMap.get(listKey.get(3));
@@ -254,6 +319,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             holder.tvDate3.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0] + "|" + getWeather);
             holder.tvTemp3_1.setText(tempMax_1 + "");
             holder.tvTemp3_2.setText(tempMmin_1 + "");
+            holder.img3.setImageResource(getImage(getWeather));
 
             // Ngày 4
             listOfWeathers = detailWeatherHashMap.get(listKey.get(4));
@@ -263,6 +329,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             holder.tvDate4.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0] + "|" + getWeather);
             holder.tvTemp4_1.setText(tempMax_1 + "");
             holder.tvTemp4_2.setText(tempMmin_1 + "");
+            holder.img4.setImageResource(getImage(getWeather));
 
             // Ngày 5
             listOfWeathers = detailWeatherHashMap.get(listKey.get(5));
@@ -272,6 +339,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             holder.tvDate5.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0] + "|" + getWeather);
             holder.tvTemp5_1.setText(tempMax_1 + "");
             holder.tvTemp5_2.setText(tempMmin_1 + "");
+            holder.img5.setImageResource(getImage(getWeather));
         }
 
 

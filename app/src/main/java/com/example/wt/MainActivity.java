@@ -4,10 +4,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.example.wt.Adapter.ViewPagerAdapter;
 import com.example.wt.Fragment.MapFragment;
@@ -45,206 +50,15 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     public static final String KEY_API = "4075de6ade4bc3ff857acc98a3d8395c";
+    private static String ID;
     City city;
     HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap;
-
+    TextView tvText;
     TabLayout tabLayout;
     ViewPager viewPager;
     Toolbar toolbar;
     FirebaseFirestore db;
 
-    // Start: Lấy data weather forecast dạng Json từ api của openweathermap.org
-    public String RequestAPIForecast(final int id) {
-        FetchRunnable t = new FetchRunnable(id, this, "forecast");
-
-        Thread thread = new Thread(t);
-        thread.start();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return t.getValue();
-    }
-
-    // Start: Lấy data weather current dạng Json từ api của openweathermap.org
-    public String RequestAPICurrent(final int id) {
-        FetchRunnable t = new FetchRunnable(id, this, "weather");
-
-        Thread thread = new Thread(t);
-        thread.start();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return t.getValue();
-    }
-
-    // Start: cập nhật và insert weather forecast
-    public void updateForecast(String locate, String time) {
-        WeatherForecast weatherForecast = new WeatherForecast();
-        db = FirebaseFirestore.getInstance();
-        String json = null;
-        json = RequestAPIForecast(1567788);
-        weatherForecast.fetchData(json);
-
-        Map<String, Object> hashMap = new HashMap<>();
-
-        hashMap.put("city", weatherForecast.getCityForecast());
-        hashMap.put("cnt", weatherForecast.getCnt());
-        hashMap.put("cod", weatherForecast.getCod());
-        hashMap.put("list", weatherForecast.getListForecast());
-
-        db.collection("Cities")
-                .document(locate)
-                .collection(time)
-                .document("forecast")
-                .update(hashMap)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d("data", "Written complete");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d("data", "written error");
-                    }
-                });
-    }
-
-    public void insertForecast(String locate, String time) {
-        WeatherForecast weatherForecast = new WeatherForecast();
-        db = FirebaseFirestore.getInstance();
-        String jsonForecast = null;
-        jsonForecast = RequestAPIForecast(1567788);
-        weatherForecast.fetchData(jsonForecast);
-
-        Map<String, Object> hashMap = new HashMap<>();
-
-        hashMap.put("city", weatherForecast.getCityForecast());
-        hashMap.put("cnt", weatherForecast.getCnt());
-        hashMap.put("cod", weatherForecast.getCod());
-        hashMap.put("list", weatherForecast.getListForecast());
-
-        Map<String, Object> hashMap1 = new HashMap<>();
-        hashMap1.put("id", "12345");
-        db.collection("Cities")
-                .document(locate)
-                .set(hashMap1);
-        db.collection("Cities")
-                .document(locate)
-                .collection(time)
-                .document("forecast")
-                .set(hashMap)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d("data", "Written complete");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d("data", "written error");
-                    }
-                });
-    }
-    // End
-
-    // Start: cập nhật và insert weather current
-    public void updateCurrent(String locate, String time) {
-        WeatherCurrent weatherCurrent = new WeatherCurrent();
-        db = FirebaseFirestore.getInstance();
-        String json = null;
-        json = RequestAPICurrent(1567788);
-        weatherCurrent.fetchData(json);
-
-        Map<String, Object> hashMap = new HashMap<>();
-
-        hashMap.put("base", weatherCurrent.getBase());
-        hashMap.put("clouds", weatherCurrent.getClouds());
-        hashMap.put("cod", weatherCurrent.getCod());
-        hashMap.put("coord", weatherCurrent.getCoord());
-        hashMap.put("dt", weatherCurrent.getDt());
-        hashMap.put("id", weatherCurrent.getId());
-        hashMap.put("main", weatherCurrent.getMain());
-        hashMap.put("name", weatherCurrent.getName());
-        hashMap.put("rain", weatherCurrent.getRain());
-        hashMap.put("sys", weatherCurrent.getSys());
-        hashMap.put("timezone", weatherCurrent.getTimezone());
-        hashMap.put("weather", weatherCurrent.getWeather());
-        hashMap.put("wind", weatherCurrent.getWind());
-
-        db.collection("Cities")
-                .document(locate)
-                .collection(time)
-                .document("current")
-                .update(hashMap)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d("data", "Written complete");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d("data", "written error");
-                    }
-                });
-    }
-
-    public void insertCurrent(String locate, String time) {
-        WeatherCurrent weatherCurrent = new WeatherCurrent();
-        db = FirebaseFirestore.getInstance();
-        String jsonCurrent = null;
-        jsonCurrent = RequestAPICurrent(1567788);
-        weatherCurrent.fetchData(jsonCurrent);
-
-        Map<String, Object> hashMap = new HashMap<>();
-
-        hashMap.put("base", weatherCurrent.getBase());
-        hashMap.put("clouds", weatherCurrent.getClouds());
-        hashMap.put("cod", weatherCurrent.getCod());
-        hashMap.put("coord", weatherCurrent.getCoord());
-        hashMap.put("dt", weatherCurrent.getDt());
-        hashMap.put("id", weatherCurrent.getId());
-        hashMap.put("main", weatherCurrent.getMain());
-        hashMap.put("name", weatherCurrent.getName());
-        hashMap.put("rain", weatherCurrent.getRain());
-        hashMap.put("sys", weatherCurrent.getSys());
-        hashMap.put("timezone", weatherCurrent.getTimezone());
-        hashMap.put("weather", weatherCurrent.getWeather());
-        hashMap.put("wind", weatherCurrent.getWind());
-
-        Map<String, Object> hashMap1 = new HashMap<>();
-        hashMap1.put("id", "12345");
-        db.collection("Cities")
-                .document(locate)
-                .set(hashMap1);
-        db.collection("Cities")
-                .document(locate)
-                .collection(time)
-                .document("current")
-                .set(hashMap)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d("data", "Written complete");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d("data", "written error");
-                    }
-                });
-    }
-
-    // End
     public ArrayList<String> getLocate(ArrayList<Object> list) {
         HashMap<String, ArrayList<String>> hashMapLocate = new HashMap<>();
         for (int i = 0; i < list.size(); i++) {
@@ -266,58 +80,6 @@ public class MainActivity extends AppCompatActivity {
         return listLocate;
     }
 
-    public void updateWeatherLocate() {
-        boolean flag = false;
-        CollectionReference colRef = null;
-        try {
-            colRef = db.collection("12345");
-        } catch (Exception e) {
-            flag = true;
-        }
-
-        int i = 0;
-        colRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                if (queryDocumentSnapshots.isEmpty()) {
-                    Log.d("error", "Collection is empty");
-                } else {
-                    // Start: Lấy date của locate
-                    ArrayList<Object> list = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
-                    ArrayList<String> listLocate = getLocate(list);
-                    // End
-                    int iasd = 0;
-                    for (String locate : listLocate) {
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-                        String time = sdf.format(new Date());
-                        boolean flag = false;
-                        try {
-                            db.collection("Cities").document(locate).collection(time);
-                        } catch (Exception e) {
-                            flag = true;
-                            e.printStackTrace();
-                        }
-                        if (flag) {
-                            insertForecast(locate, time);
-                            insertCurrent(locate,time);
-                        } else {
-                            insertForecast(locate, time);
-                            insertCurrent(locate,time);
-                        }
-
-
-
-
-
-                    }
-                    int i = 0;
-
-
-                }
-            }
-        });
-
-    }
 
     //End
     @Override
@@ -325,34 +87,41 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        this.ID = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
 
-        // Lấy locate cửa từng user trong Users
-
-//        ArrayList<String> arrayListLocate = new ArrayList<>();
-//        arrayListLocate = getArrayLocate("12345");
-//        for(String locate:arrayListLocate){
-        db = FirebaseFirestore.getInstance();
-            updateWeatherLocate(); // update/ insert weather lên firebase
-        // Lấy id của locate
-
-
-        // Lấy weather theo time
-//        String locate = "Bình Phước",
-//                date = "9-10-2019";
-//        getArrayWeather(locate, date);
-//        int i = 0;
-
-        // End
 
         tabLayout = findViewById(R.id.tab_layout);
         viewPager = findViewById(R.id.view_paper);
         toolbar = findViewById(R.id.toolbar);
+        tvText = findViewById(R.id.tvText);
         setSupportActionBar(toolbar);
 
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+        WeatherFragment weatherFragment = new WeatherFragment();
+        HistoryFragment historyFragment = new HistoryFragment();
+        MapFragment mapFragment = new MapFragment();
+
+
+
         ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), 0);
-        viewPagerAdapter.AddFragment(new WeatherFragment(), "WEATHER");
-        viewPagerAdapter.AddFragment(new HistoryFragment(), "HISTORY");
-        viewPagerAdapter.AddFragment(new MapFragment(), "MAP");
+
+        viewPagerAdapter.AddFragment(weatherFragment, "WEATHER");
+        viewPagerAdapter.AddFragment(historyFragment, "HISTORY");
+        viewPagerAdapter.AddFragment(mapFragment, "MAP");
+
+        Intent intent = getIntent();
+        String keyLog = intent.getStringExtra("keyLog"),
+                keyLat = intent.getStringExtra("keyLat");
+        tvText.setText(keyLat + "|" + keyLog);
+        if (intent != null) {
+            Bundle bundle = new Bundle();
+            bundle.putString("valueLog", keyLog);
+            bundle.putString("valueLat", keyLat);
+            weatherFragment.setArguments(bundle);
+        }
+
 
         viewPager.setAdapter(viewPagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
@@ -360,6 +129,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public static String getID() {
+        return ID;
+    }
 
     public void getArrayWeather(String locate, String date) {
         DocumentReference docRef = db.collection("Cities").document(locate).collection(date).document("forecast");
@@ -493,4 +265,6 @@ public class MainActivity extends AppCompatActivity {
 
         return new City(coords, country, name, sunrise, sunset, timezone);
     }
+
+
 }

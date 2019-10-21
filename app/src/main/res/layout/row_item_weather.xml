@@ -94,8 +94,7 @@
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:layout_gravity="center|right"
-                    android:layout_marginLeft="16dp"
-                    android:background="@drawable/icons8_windy_weather_100" />
+                    android:layout_marginLeft="16dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -222,8 +221,7 @@
                 <ImageView
                     android:id="@+id/img1"
                     android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:background="@drawable/iconfinder_weather_5_1322062" />
+                    android:layout_height="24dp"/>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -298,8 +296,7 @@
                 <ImageView
                     android:id="@+id/img2"
                     android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:background="@drawable/iconfinder_weather_5_1322062" />
+                    android:layout_height="24dp" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -374,8 +371,7 @@
                 <ImageView
                     android:id="@+id/img3"
                     android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:background="@drawable/iconfinder_weather_5_1322062" />
+                    android:layout_height="24dp" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -450,8 +446,7 @@
                 <ImageView
                     android:id="@+id/img4"
                     android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:background="@drawable/iconfinder_weather_5_1322062" />
+                    android:layout_height="24dp"/>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -526,8 +521,7 @@
                 <ImageView
                     android:id="@+id/img5"
                     android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:background="@drawable/iconfinder_weather_5_1322062" />
+                    android:layout_height="24dp"/>
 
                 <LinearLayout
                     android:layout_width="wrap_content"

@@ -173,6 +173,8 @@ public class WeatherCurrent {
             this.sys = FetchSys(jsonRoot.getJSONObject("sys"));
             this.timezone = jsonRoot.getString("timezone");
             this.weathers = FetchWeather(jsonRoot.getJSONArray("weather"));
+            this.wind = jsonRoot.has("wind")? FetchWind(jsonRoot.getJSONObject("wind"))
+                    :new WindCurrent(0.0,0.0);
             this.wind = FetchWind(jsonRoot.getJSONObject("wind"));
 
 
