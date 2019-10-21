@@ -6,14 +6,14 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+<!--    <com.google.android.material.appbar.AppBarLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">-->
 
-        <include layout="@layout/toolbar_layout" />
+<!--        <include layout="@layout/toolbar_layout" />-->
 
-    </com.google.android.material.appbar.AppBarLayout>
+<!--    </com.google.android.material.appbar.AppBarLayout>-->
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
@@ -26,7 +26,8 @@
         app:tabTextColor="@color/colorAccent" />
 
 
-    <androidx.viewpager.widget.ViewPager
+<!--    <androidx.viewpager.widget.ViewPager-->
+    <com.example.wt.NonSwipeableViewPager
         android:id="@+id/view_paper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

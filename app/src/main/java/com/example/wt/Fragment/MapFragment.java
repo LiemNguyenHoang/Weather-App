@@ -29,7 +29,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.wt.FetchRunnable;
 import com.example.wt.MainActivity;
+import com.example.wt.Parameter.Current.WeatherCurrent;
 import com.example.wt.R;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -43,6 +45,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -181,8 +186,8 @@ public class MapFragment extends Fragment implements LocationListener, OnMapRead
                 CameraPosition cameraPosition = new CameraPosition.Builder()
                         .target(latLng)             // Sets the center of the map to location user
                         .zoom(10)                   // Sets the zoom
-                        .bearing(90)                // Sets the orientation of the camera to east
-                        .tilt(40)                   // Sets the tilt of the camera to 30 degrees
+//                        .bearing(90)                // Sets the orientation of the camera to east
+//                        .tilt(40)                   // Sets the tilt of the camera to 30 degrees
                         .build();                   // Creates a CameraPosition from the builder
                 myMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                 // Lấy tên location
@@ -216,13 +221,28 @@ public class MapFragment extends Fragment implements LocationListener, OnMapRead
             @Override
             public void onClick(View v) {
 
+                // Start: Check lon lat có lấy được weather
+                double lat = Double.parseDouble(tvLat.getText().toString());
+                double lon = Double.parseDouble(tvLog.getText().toString());
+//                int id = getIdLocate(lat,lon);
+//                String name = getNameLocate(id);
+
+                boolean resultLocation = checkLocation(lat,lon);
+                // End
+                if(!resultLocation){
+                    Toast.makeText(getContext(), "Failed to get the weather !!!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if(!tvLat.getText().toString().equals("")&&!tvLog.getText().toString().equals("")){
                     Intent intent = new Intent(getActivity().getBaseContext(),
                             MainActivity.class);
                     intent.putExtra("keyLog", tvLog.getText());
                     intent.putExtra("keyLat", tvLat.getText());
                     getActivity().startActivity(intent);
+
                     Toast.makeText(getContext(), tvLog.getText() + "|" + tvLat.getText(), Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(getContext(), "Failed to get location !!!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -407,6 +427,86 @@ public class MapFragment extends Fragment implements LocationListener, OnMapRead
         if (currentMarker != null) {
             currentMarker.remove();
         }
+
+    }
+
+    // Start: Lấy data weather current dạng Json từ api của openweathermap.org
+//    public String RequestAPICurrent(final int id) {
+//        FetchRunnable t = new FetchRunnable(id, getContext(), "weather");
+//
+//        Thread thread = new Thread(t);
+//        thread.start();
+//        try {
+//            thread.join();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        return t.getValue();
+//    }
+
+    public boolean checkLocation(double lat, double lon){
+        FetchRunnable t = new FetchRunnable(lat, lon, getContext(), "LatLng");
+
+        Thread thread = new Thread(t);
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        String json = t.getValue();
+        int id = 0;
+        String name = "";
+        JSONObject jsonRoot = null;
+        try {
+            jsonRoot = new JSONObject(json);
+            id = jsonRoot.getInt("id");
+            name =jsonRoot.getString("main");
+            if(name.equals("")||id==0){
+                return  false;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    // Start: Lấy tên của locate bằng LatLog (s/d openweather loglat)
+    public int getIdLocate(double lat, double lon) {
+        FetchRunnable t = new FetchRunnable(lat, lon, getContext(), "LatLng");
+
+        Thread thread = new Thread(t);
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        String json = t.getValue();
+        WeatherCurrent weatherCurrent = new WeatherCurrent();
+        weatherCurrent.fetchData(json);
+        return weatherCurrent.getId();
+    }
+    // End
+    public String getNameLocate(int id) {
+        FetchRunnable t = new FetchRunnable(id, getContext(), "weather");
+
+        Thread thread = new Thread(t);
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        String json = t.getValue();
+
+        WeatherCurrent weatherCurrent = new WeatherCurrent();
+        weatherCurrent.fetchData(json);
+        return weatherCurrent.getName();
 
     }
 }

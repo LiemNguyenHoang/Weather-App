@@ -2,6 +2,7 @@ package com.example.wt.Model;
 
 public class DetailWeather {
     String Dt_txt;
+    String Locate;
     String Clouds;
     String Rain;
     Weathers Weather;
@@ -10,9 +11,11 @@ public class DetailWeather {
 
     public DetailWeather() {
     }
-    public DetailWeather( String dt_txt ) {
+
+    public DetailWeather(String dt_txt) {
         Dt_txt = dt_txt;
     }
+
     public DetailWeather(String dt_txt, String clouds, String rain, Weathers weather, Winds wind, Mains main) {
         Dt_txt = dt_txt;
         Clouds = clouds;
@@ -20,6 +23,23 @@ public class DetailWeather {
         Weather = weather;
         Wind = wind;
         Main = main;
+    }
+
+    public DetailWeather(String dt_txt, String rain, Weathers weather, Winds wind, Mains main, String locate) {
+        Dt_txt = dt_txt;
+        Rain = rain;
+        Weather = weather;
+        Wind = wind;
+        Main = main;
+        Locate = locate;
+    }
+
+    public String getLocate() {
+        return Locate;
+    }
+
+    public void setLocate(String locate) {
+        Locate = locate;
     }
 
     public String getDt_txt() {

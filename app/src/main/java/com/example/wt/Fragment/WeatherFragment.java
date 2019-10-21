@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.wt.Adapter.DetaiWeatherAdapter;
 import com.example.wt.FetchRunnable;
@@ -62,19 +63,18 @@ public class WeatherFragment extends Fragment {
     String date;
     int id;
     RecyclerView rv_weather;
-    SwipeRefreshLayout swiperefresh;
     ProgressDialog progressDialog;
+    SwipeRefreshLayout swiperefresh;
 
-    TextView tvPosition;
 
     public WeatherFragment() {
         // Required empty public constructor
     }
 
     public ArrayList<Long> getIdLocateUser(ArrayList<Object> list) {
-        HashMap<Long, ArrayList<String>> hashMapLocate = new HashMap<>();
+        HashMap<Long, ArrayList<String>> hashMapLocate = new HashMap<>(); // chứa id và time
 
-        for (int i = 0; i < list.size(); i++) {
+        for (int i = 1; i < list.size(); i++) { // bỏ qua vị trí đầu tiên vì bị null
             HashMap<String, Object> hashMap = (HashMap<String, Object>) list.get(i);
             ArrayList<String> listKey = new ArrayList<>();
             for (String key : hashMap.keySet()) {
@@ -146,8 +146,8 @@ public class WeatherFragment extends Fragment {
         boolean flag = false;
         CollectionReference colRef = null;
         try {
-//            colRef = db.collection(MainActivity.getID());
-            colRef = db.collection("12345");
+            colRef = db.collection(MainActivity.getID());
+//            colRef = db.collection("12345");
         } catch (Exception e) {
             flag = true;
         }
@@ -161,11 +161,15 @@ public class WeatherFragment extends Fragment {
                 } else {
                     // Start: Lấy date của locate
                     ArrayList<Object> listHashMap = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
+                    ArrayList<Object> list = new ArrayList<>();
+                    HashMap<String, Long> hashMap = new HashMap<>();
+                    list.add(hashMap.put("0", (long) 0));
                     boolean flag = false;
                     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
                     String time = sdf.format(new Date());
+
                     for (int i = 0; i < listHashMap.size(); i++) {
-                        HashMap<String, Long> hashMap = new HashMap<>();
+                        hashMap = new HashMap<>();
                         hashMap = (HashMap<String, Long>) listHashMap.get(i);
 
 
@@ -176,7 +180,7 @@ public class WeatherFragment extends Fragment {
                         }
                         String key = listKey.get(0);
                         long value = hashMap.get(key);
-                        if(value==id){ // có id locate trong hashmap
+                        if (value == id) { // có id locate trong hashmap
 //                            hashMap.put(date, (long) id);
                             ((HashMap<String, Long>) listHashMap.get(i)).put(time, (long) id);
                             flag = true;
@@ -185,11 +189,17 @@ public class WeatherFragment extends Fragment {
                         // End
 
                     }
-                    if (flag==false) { //chưa có locate trong list id device
-                        HashMap<String, Integer> hashMap = new HashMap<>();
-                        hashMap.put(time, id);
-                        listHashMap.add(hashMap);
+                    if (flag == false) { //chưa có locate trong list id device
+                        HashMap<String, Integer> hashMap1 = new HashMap<>();
+                        hashMap1.put(time, id);
+                        listHashMap.add(hashMap1);
                     }
+                    for (int i = 0; i < listHashMap.size(); i++) {
+                        list.add(listHashMap.get(i));
+                    }
+
+                    int i = 0;
+
 //                    // Start: *
 //                        HashMap<Integer,String> hashMapTest = new HashMap<>();
 //                        for(int i = 0;i<list.size();i++){
@@ -220,7 +230,6 @@ public class WeatherFragment extends Fragment {
 //                    }
 
 
-                    progressDialog.dismiss();
                 }
             }
         });
@@ -253,36 +262,28 @@ public class WeatherFragment extends Fragment {
         // Inflate the layout for this fragment
         swiperefresh = view.findViewById(R.id.swiperefresh);
         rv_weather = view.findViewById(R.id.rv_weather);
-        tvPosition = view.findViewById(R.id.tvPosition);
         listOfWeathers = new ArrayList<>();
 
-
-// Start:
-
-
         // Start: Tạo Progress Dialog
-
         progressDialog = new ProgressDialog(getActivity());
         progressDialog.setTitle("Weather Loading");
         progressDialog.setMessage("Please wait...");
         progressDialog.setCancelable(true);
+//        progressDialog.show();
 
-        progressDialog.show();
+
+//        progressDialog.show();
 
         // End
 
         detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
-        rv_weather.setAdapter(detaiWeatherAdapter);
-
-
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         rv_weather.setLayoutManager(linearLayoutManager);
 
-
+        // Nhận Latlon từ Map fragment
         if (getArguments() != null) {
             String valueLog = getArguments().getString("valueLog");
             String valueLat = getArguments().getString("valueLat");
-            tvPosition.setText(valueLog + "|" + valueLat);
             if (getArguments().getString("valueLog") != null && getArguments().getString("valueLat") != null) {
                 db = FirebaseFirestore.getInstance();
                 double lat = Double.parseDouble(valueLat);
@@ -300,9 +301,10 @@ public class WeatherFragment extends Fragment {
             setArguments(null);
 
         }
+
         listOfWeathers.clear();
         detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
-        updateWeatherLocate();
+        showWeatherLocate();
         rv_weather.setAdapter(detaiWeatherAdapter);
 
 
@@ -312,7 +314,7 @@ public class WeatherFragment extends Fragment {
 
                 listOfWeathers.clear();
                 detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
-                updateWeatherLocate();
+                showWeatherLocate();
                 rv_weather.setAdapter(detaiWeatherAdapter);
 
                 swiperefresh.setRefreshing(false);
@@ -322,40 +324,6 @@ public class WeatherFragment extends Fragment {
         return view;
     }
 
-    //
-//    public void updateForecast(String locate, String time) {
-//        WeatherForecast weatherForecast = new WeatherForecast();
-//        db = FirebaseFirestore.getInstance();
-//        String json = null;
-//        json = RequestAPIForecast(locate);
-//        weatherForecast.fetchData(json);
-//
-//        Map<String, Object> hashMap = new HashMap<>();
-//
-//        hashMap.put("city", weatherForecast.getCityForecast());
-//        hashMap.put("cnt", weatherForecast.getCnt());
-//        hashMap.put("cod", weatherForecast.getCod());
-//        hashMap.put("list", weatherForecast.getListForecast());
-//
-//        db.collection("Cities")
-//                .document(locate)
-//                .collection(time)
-//                .document("forecast")
-//                .update(hashMap)
-//                .addOnSuccessListener(new OnSuccessListener<Void>() {
-//                    @Override
-//                    public void onSuccess(Void aVoid) {
-//                        Log.d("data", "Update forecast complete");
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//                        Log.d("data", "Update forecast error");
-//                    }
-//                });
-//    }
-//
     public void insertForecast(int id, String time) {
         WeatherForecast weatherForecast = new WeatherForecast();
         db = FirebaseFirestore.getInstance();
@@ -423,8 +391,8 @@ public class WeatherFragment extends Fragment {
 //                    }
 //                });
 
-//            db.collection(MainActivity.getID())
-            db.collection("12345")
+            db.collection(MainActivity.getID())
+//            db.collection("12345")
                     .document(i + "")
                     .set(hashMap)
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -552,13 +520,13 @@ public class WeatherFragment extends Fragment {
                 });
     }
 
-    public void updateWeatherLocate() {
+    public void showWeatherLocate() {
         db = FirebaseFirestore.getInstance();
         boolean flag = false;
         CollectionReference colRef = null;
         try {
-//            colRef = db.collection(MainActivity.getID());
-            colRef = db.collection("12345");
+            colRef = db.collection(MainActivity.getID());
+//            colRef = db.collection("12345");
         } catch (Exception e) {
             flag = true;
         }
@@ -572,22 +540,28 @@ public class WeatherFragment extends Fragment {
                 } else {
                     // Start: Lấy date của locate
                     ArrayList<Object> list = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
-                    ArrayList<Long> listIdLocate = getIdLocateUser(list);
-                    // End
-                    int iasd = 0;
-                    for (long id : listIdLocate) {
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-                        String time = sdf.format(new Date());
+                    ArrayList<Long> listIdLocate = new ArrayList<>();
+                    if (list.size() > 1) { //   có history của devices
+                        listIdLocate = getIdLocateUser(list);
+                        for (long id : listIdLocate) {
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                            String time = sdf.format(new Date());
 
-                        String name = getNameLocate((int) id);
-                        insertCurrent((int) id, time);
-                        insertForecast((int) id, time);
+                            String name = getNameLocate((int) id);
+                            insertCurrent((int) id, time);
+                            insertForecast((int) id, time);
 
-                        getWeather(name, time);
+                            getWeather(name, time);
+
+                        }
+
+//                        progressDialog.dismiss();
+                    } else { // không  có history của devices
+//                        progressDialog.dismiss();
+                        Toast.makeText(getContext(), "Không có History", Toast.LENGTH_LONG).show();
                     }
 
 
-                    progressDialog.dismiss();
                 }
             }
         });

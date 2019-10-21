@@ -3,9 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragment.MapFragment"
     android:orientation="vertical"
-    >
+    tools:context=".Fragment.MapFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <LinearLayout
@@ -19,21 +18,22 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text=""/>
+            android:text="" />
+
         <TextView
             android:id="@+id/tv_lat"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text=""/>
+            android:text="" />
 
     </LinearLayout>
 
-<!--    <fragment android:id="@+id/autocomplete_fragment"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"-->
-<!--        />-->
+    <!--    <fragment android:id="@+id/autocomplete_fragment"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"-->
+    <!--        />-->
 
     <FrameLayout
         android:layout_width="wrap_content"
@@ -42,18 +42,18 @@
         <FrameLayout
             android:id="@+id/map"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
         <ImageButton
             android:id="@+id/btnLoglat"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginLeft="264dp"
-            android:layout_marginBottom="112dp"
             android:layout_gravity="bottom"
+            android:layout_marginLeft="432dp"
+            android:layout_marginBottom="112dp"
             android:background="#000000"
             android:src="@drawable/icon"
-            android:text=""/>
+            android:text="" />
 
     </FrameLayout>
 

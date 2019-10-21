@@ -2,10 +2,10 @@ package com.example.wt.Model;
 
 public class Mains {
     private String Humidity,
-    Pressure,
-    Temp,
-    TempMax,
-    TempMin;
+            Pressure,
+            Temp,
+            TempMax,
+            TempMin;
 
     public Mains() {
     }
@@ -16,6 +16,15 @@ public class Mains {
         Temp = temp;
         TempMax = tempMax;
         TempMin = tempMin;
+    }
+
+    public Mains(String temp) {
+        Temp = temp;
+        Humidity = "";
+        Pressure = "";
+        TempMax = "";
+        TempMin = "";
+
     }
 
     public String getHumidity() {

@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.TextView;
 
 import com.example.wt.Adapter.ViewPagerAdapter;
@@ -53,9 +55,8 @@ public class MainActivity extends AppCompatActivity {
     private static String ID;
     City city;
     HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap;
-    TextView tvText;
     TabLayout tabLayout;
-    ViewPager viewPager;
+    NonSwipeableViewPager viewPager;
     Toolbar toolbar;
     FirebaseFirestore db;
 
@@ -88,21 +89,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         this.ID = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
-
+//        this.ID = "12345";
+        // Kiểm tra có id devices không
+        checkHistory();
 
         tabLayout = findViewById(R.id.tab_layout);
         viewPager = findViewById(R.id.view_paper);
         toolbar = findViewById(R.id.toolbar);
-        tvText = findViewById(R.id.tvText);
         setSupportActionBar(toolbar);
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
+
 
         WeatherFragment weatherFragment = new WeatherFragment();
         HistoryFragment historyFragment = new HistoryFragment();
         MapFragment mapFragment = new MapFragment();
-
 
 
         ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), 0);
@@ -111,22 +111,52 @@ public class MainActivity extends AppCompatActivity {
         viewPagerAdapter.AddFragment(historyFragment, "HISTORY");
         viewPagerAdapter.AddFragment(mapFragment, "MAP");
 
+// Start: send lon lat lấy được từ Map fragment
         Intent intent = getIntent();
         String keyLog = intent.getStringExtra("keyLog"),
                 keyLat = intent.getStringExtra("keyLat");
-        tvText.setText(keyLat + "|" + keyLog);
         if (intent != null) {
             Bundle bundle = new Bundle();
             bundle.putString("valueLog", keyLog);
             bundle.putString("valueLat", keyLat);
             weatherFragment.setArguments(bundle);
         }
+// End
 
 
         viewPager.setAdapter(viewPagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
 
 
+    }
+
+    public void checkHistory(){
+        db = FirebaseFirestore.getInstance();
+        DocumentReference docRef = db.collection(MainActivity.getID()).document("0");
+        docRef.get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot documentSnapshot = task.getResult();
+                            if (documentSnapshot.exists()) {
+                                Log.d("data", " DocumentSnapshot data: " + documentSnapshot.getData());
+
+                            } else { // không có data
+                                Log.d("data", "No such document");
+
+                                db = FirebaseFirestore.getInstance();
+                                HashMap<String ,Integer> hashMap = new HashMap<>();
+                                hashMap.put("0",0);
+                                db.collection(MainActivity.getID()).document("0").set(hashMap);
+
+
+                            }
+                        } else {
+                            Log.d("data", "Go failed with" + task.getException());
+                        }
+                    }
+                });
     }
 
     public static String getID() {
