@@ -8,13 +8,17 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.wt.Adapter.ViewPagerAdapter;
 import com.example.wt.Fragment.MapFragment;
@@ -88,46 +92,73 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        this.ID = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
-//        this.ID = "12345";
-        // Kiểm tra có id devices không
-        checkHistory();
-
         tabLayout = findViewById(R.id.tab_layout);
         viewPager = findViewById(R.id.view_paper);
         toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        boolean flag =true;
+        while(true){
+            flag=isNetworkAvailable();
+            if(flag){
+                break;
+            }
+            else{
+                try {
+                    Toast.makeText(this,"No Internet, please connect internet!!!",Toast.LENGTH_SHORT).show();
+                    Thread.sleep(1000);
+                    Log.d("data","Internet failer");
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        if(flag){ // có internet
+            this.ID = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+//        this.ID = "12345";
+            // Kiểm tra có id devices không
+            checkHistory();
+
+
+//            setSupportActionBar(toolbar);
 
 
 
-        WeatherFragment weatherFragment = new WeatherFragment();
-        HistoryFragment historyFragment = new HistoryFragment();
-        MapFragment mapFragment = new MapFragment();
+            WeatherFragment weatherFragment = new WeatherFragment();
+            HistoryFragment historyFragment = new HistoryFragment();
+            MapFragment mapFragment = new MapFragment();
 
 
-        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), 0);
+            ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), 0);
 
-        viewPagerAdapter.AddFragment(weatherFragment, "WEATHER");
-        viewPagerAdapter.AddFragment(historyFragment, "HISTORY");
-        viewPagerAdapter.AddFragment(mapFragment, "MAP");
+            viewPagerAdapter.AddFragment(weatherFragment, "WEATHER");
+            viewPagerAdapter.AddFragment(historyFragment, "HISTORY");
+            viewPagerAdapter.AddFragment(mapFragment, "MAP");
 
 // Start: send lon lat lấy được từ Map fragment
-        Intent intent = getIntent();
-        String keyLog = intent.getStringExtra("keyLog"),
-                keyLat = intent.getStringExtra("keyLat");
-        if (intent != null) {
-            Bundle bundle = new Bundle();
-            bundle.putString("valueLog", keyLog);
-            bundle.putString("valueLat", keyLat);
-            weatherFragment.setArguments(bundle);
-        }
+            Intent intent = getIntent();
+            String keyLog = intent.getStringExtra("keyLog"),
+                    keyLat = intent.getStringExtra("keyLat");
+            if (intent != null) {
+                Bundle bundle = new Bundle();
+                bundle.putString("valueLog", keyLog);
+                bundle.putString("valueLat", keyLat);
+                weatherFragment.setArguments(bundle);
+            }
 // End
 
 
-        viewPager.setAdapter(viewPagerAdapter);
-        tabLayout.setupWithViewPager(viewPager);
+            viewPager.setAdapter(viewPagerAdapter);
+            tabLayout.setupWithViewPager(viewPager);
+        }
 
 
+    }
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     public void checkHistory(){

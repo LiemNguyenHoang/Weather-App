@@ -41,9 +41,9 @@
         android:id="@+id/btnLoglat"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginRight="@dimen/margin_right"
+        android:layout_marginRight="@dimen/margin_right_large"
         android:layout_gravity="end|bottom"
-        android:layout_marginBottom="@dimen/margin_bottom"
+        android:layout_marginBottom="@dimen/margin_bottom_large"
         android:background="@drawable/icon" />
 
 

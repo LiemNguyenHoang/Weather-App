@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <dimen name="margin_right">8dp</dimen>
+    <dimen name="margin_bottom">104dp</dimen>
+
+    <dimen name="margin_right_normal">8dp</dimen>
+    <dimen name="margin_bottom_normal">104dp</dimen>
+
+    <dimen name="margin_right_large">8dp</dimen>
+    <dimen name="margin_bottom_large">104dp</dimen>
+
+    <dimen name="margin_right_xlarge">8dp</dimen>
+    <dimen name="margin_bottom_xlarge">104dp</dimen>
+
+</resources>

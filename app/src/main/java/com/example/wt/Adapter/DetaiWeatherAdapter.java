@@ -14,11 +14,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.wt.MainActivity;
 import com.example.wt.Model.City;
 import com.example.wt.Model.DetailWeather;
 import com.example.wt.Model.ListOfWeather;
 import com.example.wt.Model.Weathers;
 import com.example.wt.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,6 +88,33 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
                 }
             }
         });
+//        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                listCurrent.remove(position);
+                // Lấy id của locate cần xóa
+//                FirebaseFirestore db = FirebaseFirestore.getInstance();
+//                db.collection(MainActivity.getID())
+//                        .whereEqualTo("22-10-2019", 2215210)
+//                        .get()
+//                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//                            @Override
+//                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                                if (task.isSuccessful()) {
+//                                    for (QueryDocumentSnapshot document : task.getResult()) {
+//                                        Log.d("data", document.getId() + " => " + document.getData());
+//                                    }
+//                                } else {
+//                                    Log.d("data", "Error getting documents: ", task.getException());
+//                                }
+//                            }
+//                        });
+//
+//                // xóa trong firebase
+//
+//                notifyDataSetChanged();
+//            }
+//        });
         holder.seekTime.setMax(nWeather - 1);
         // show display at position 0
         holder.tvLocate.setText(city.getName());
@@ -115,6 +148,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
         return listOfWeathers.size();
     }
 
+
     class DetailWeatherViewHolder extends RecyclerView.ViewHolder {
         private TextView tvLocate;
         private TextView tvTime;
@@ -129,6 +163,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
         private TextView tvEndTime;
         private SeekBar seekTime;
         private Button btnExpand;
+        private Button btnDelete;
         private LinearLayout linearLayout;
         private TextView tvDate1;
         private TextView tvDate2;
@@ -161,6 +196,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             tvRain = itemView.findViewById(R.id.tvRain);
             tvWind = itemView.findViewById(R.id.tvWind);
             btnExpand = itemView.findViewById(R.id.btnExpand);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
             linearLayout = itemView.findViewById(R.id.linearLayout);
             seekTime = itemView.findViewById(R.id.seekTime);
             tvStartTime = itemView.findViewById(R.id.tvStartTime);
@@ -296,7 +332,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             int tempMax_1 = getTempMaxDate(listOfWeathers);
             int tempMmin_1 = getTempDateMin(listOfWeathers);
             String getWeather = getWeatherDate(listOfWeathers);
-            holder.tvDate1.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0] + "|" + getWeather);
+            holder.tvDate1.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0]);
             holder.tvTemp1_1.setText(tempMax_1 + "");
             holder.tvTemp1_2.setText(tempMmin_1 + "");
             holder.img1.setImageResource(getImage(getWeather));
@@ -306,7 +342,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             tempMax_1 = getTempMaxDate(listOfWeathers);
             tempMmin_1 = getTempDateMin(listOfWeathers);
             getWeather = getWeatherDate(listOfWeathers);
-            holder.tvDate2.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0] + "|" + getWeather);
+            holder.tvDate2.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0]);
             holder.tvTemp2_1.setText(tempMax_1 + "");
             holder.tvTemp2_2.setText(tempMmin_1 + "");
             holder.img2.setImageResource(getImage(getWeather));
@@ -316,7 +352,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             tempMax_1 = getTempMaxDate(listOfWeathers);
             tempMmin_1 = getTempDateMin(listOfWeathers);
             getWeather = getWeatherDate(listOfWeathers);
-            holder.tvDate3.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0] + "|" + getWeather);
+            holder.tvDate3.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0]);
             holder.tvTemp3_1.setText(tempMax_1 + "");
             holder.tvTemp3_2.setText(tempMmin_1 + "");
             holder.img3.setImageResource(getImage(getWeather));
@@ -326,7 +362,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             tempMax_1 = getTempMaxDate(listOfWeathers);
             tempMmin_1 = getTempDateMin(listOfWeathers);
             getWeather = getWeatherDate(listOfWeathers);
-            holder.tvDate4.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0] + "|" + getWeather);
+            holder.tvDate4.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0]);
             holder.tvTemp4_1.setText(tempMax_1 + "");
             holder.tvTemp4_2.setText(tempMmin_1 + "");
             holder.img4.setImageResource(getImage(getWeather));
@@ -336,7 +372,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             tempMax_1 = getTempMaxDate(listOfWeathers);
             tempMmin_1 = getTempDateMin(listOfWeathers);
             getWeather = getWeatherDate(listOfWeathers);
-            holder.tvDate5.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0] + "|" + getWeather);
+            holder.tvDate5.setText(listOfWeathers.get(0).getDt_txt().split(" ")[0]);
             holder.tvTemp5_1.setText(tempMax_1 + "");
             holder.tvTemp5_2.setText(tempMmin_1 + "");
             holder.img5.setImageResource(getImage(getWeather));
