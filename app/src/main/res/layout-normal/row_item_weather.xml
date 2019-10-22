@@ -166,12 +166,12 @@
             android:layout_gravity="center"
             android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tvStartTime"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="Start" />
+<!--            <TextView-->
+<!--                android:id="@+id/tvStartTime"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_weight="1"-->
+<!--                android:text="Start" />-->
 
             <TextView
                 android:id="@+id/tvCurrentTime"
@@ -181,19 +181,21 @@
                 android:gravity="center"
                 android:text="Current" />
 
-            <TextView
-                android:id="@+id/tvEndTime"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:text="End" />
+<!--            <TextView-->
+<!--                android:id="@+id/tvEndTime"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_weight="1"-->
+<!--                android:gravity="end"-->
+<!--                android:text="End" />-->
 
         </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatSeekBar
             android:id="@+id/seekTime"
+            android:scrollbars="none"
             android:layout_width="match_parent"
+            android:progressDrawable="@android:color/transparent"
             android:layout_height="50dp" />
 
         <LinearLayout
@@ -221,7 +223,7 @@
                 <ImageView
                     android:id="@+id/img1"
                     android:layout_width="24dp"
-                    android:layout_height="24dp"/>
+                    android:layout_height="24dp" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -446,7 +448,7 @@
                 <ImageView
                     android:id="@+id/img4"
                     android:layout_width="24dp"
-                    android:layout_height="24dp"/>
+                    android:layout_height="24dp" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -521,7 +523,7 @@
                 <ImageView
                     android:id="@+id/img5"
                     android:layout_width="24dp"
-                    android:layout_height="24dp"/>
+                    android:layout_height="24dp" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -579,16 +581,28 @@
             </LinearLayout>
 
         </LinearLayout>
-\
+        \
 
 
-        <Button
-            android:id="@+id/btnExpand"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="EXPAND" />
+            android:orientation="horizontal">
 
+            <Button
+                android:id="@+id/btnExpand"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="EXPAND" />
+
+            <Button
+                android:id="@+id/btnDelete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="DELETE" />
+        </LinearLayout>
 
     </LinearLayout>
 

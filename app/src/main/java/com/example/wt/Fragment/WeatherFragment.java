@@ -277,6 +277,7 @@ public class WeatherFragment extends Fragment {
         // End
 
         detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
+
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         rv_weather.setLayoutManager(linearLayoutManager);
 
@@ -618,7 +619,7 @@ public class WeatherFragment extends Fragment {
         lat = hashMap1.get("lat").toString();
         Coords coords = new Coords(lon, lat);
 
-        return new City(coords, country, name, sunrise, sunset, timezone);
+        return new City(coords, country, name, sunrise, sunset, timezone,id);
     }
 
 

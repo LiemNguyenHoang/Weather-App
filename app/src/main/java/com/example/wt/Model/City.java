@@ -15,18 +15,27 @@ import java.util.Map;
 
 public class City {
     private  Coords coords;
-    private String country,name,sunrise,sunset,timezone;
+    private String country,name,sunrise,sunset,timezone,id;
 
     public City() {
     }
 
-    public City(Coords coords, String country, String name, String sunrise, String sunset, String timezone) {
+    public City(Coords coords, String country, String name, String sunrise, String sunset, String timezone, String id) {
         this.coords = coords;
         this.country = country;
         this.name = name;
         this.sunrise = sunrise;
         this.sunset = sunset;
         this.timezone = timezone;
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Coords getCoords() {

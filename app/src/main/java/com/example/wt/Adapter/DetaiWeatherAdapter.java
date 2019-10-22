@@ -21,14 +21,18 @@ import com.example.wt.Model.ListOfWeather;
 import com.example.wt.Model.Weathers;
 import com.example.wt.R;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapter.DetailWeatherViewHolder> {
     private static final String TAG = "DetaiWeatherAdapter";
@@ -37,12 +41,21 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
     private ArrayList<ListOfWeather> listOfWeathers;
     private LayoutInflater layoutInflater;
     private boolean flag;
+    private String id;
 
     public DetaiWeatherAdapter(Context context, ArrayList<ListOfWeather> listOfWeather) {
 
         this.context = context;
         this.listOfWeathers = listOfWeather;
         layoutInflater = LayoutInflater.from(context);
+    }
+
+    public DetaiWeatherAdapter(Context context, ArrayList<ListOfWeather> listOfWeather, String id) {
+
+        this.context = context;
+        this.listOfWeathers = listOfWeather;
+        layoutInflater = LayoutInflater.from(context);
+        this.id = id;
     }
 
     @NonNull
@@ -70,8 +83,6 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
         final int nWeather = listCurrent.size();
         holder.seekTime.setMax(nWeather - 1);
 
-        holder.tvStartTime.setText(listCurrent.get(0).getDt_txt().split(" ")[1]);
-        holder.tvEndTime.setText(listCurrent.get(nWeather - 1).getDt_txt().split(" ")[1]);
         flag = false;
 
         holder.btnExpand.setOnClickListener(new View.OnClickListener() {
@@ -88,33 +99,34 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
                 }
             }
         });
-//        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
+        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 //                listCurrent.remove(position);
-                // Lấy id của locate cần xóa
-//                FirebaseFirestore db = FirebaseFirestore.getInstance();
-//                db.collection(MainActivity.getID())
-//                        .whereEqualTo("22-10-2019", 2215210)
-//                        .get()
-//                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-//                            @Override
-//                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-//                                if (task.isSuccessful()) {
-//                                    for (QueryDocumentSnapshot document : task.getResult()) {
-//                                        Log.d("data", document.getId() + " => " + document.getData());
-//                                    }
-//                                } else {
-//                                    Log.d("data", "Error getting documents: ", task.getException());
-//                                }
-//                            }
-//                        });
-//
-//                // xóa trong firebase
-//
-//                notifyDataSetChanged();
-//            }
-//        });
+//                 Lấy id của locate cần xóa
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                String time = sdf.format(new Date());
+                String id = listOfWeathers.get(position).getCity().getId();
+
+
+
+                int i = 0;
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                db.collection(MainActivity.getID())
+                        .get()
+                        .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                            @Override
+                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                ArrayList<Object> list = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
+                                ArrayList<Long> listIdLocate = new ArrayList<>();
+                            }
+                        });
+
+                // xóa trong firebase
+
+                notifyDataSetChanged();
+            }
+        });
         holder.seekTime.setMax(nWeather - 1);
         // show display at position 0
         holder.tvLocate.setText(city.getName());
@@ -155,12 +167,10 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
         private TextView tvTemp;
         private TextView tvRain;
         private TextView tvWind;
-        private TextView tvStartTime;
         private TextView tvCurrentTime;
         private ImageView imgWeather;
         private ImageView imgWind;
         private ImageView imgRain;
-        private TextView tvEndTime;
         private SeekBar seekTime;
         private Button btnExpand;
         private Button btnDelete;
@@ -199,9 +209,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             btnDelete = itemView.findViewById(R.id.btnDelete);
             linearLayout = itemView.findViewById(R.id.linearLayout);
             seekTime = itemView.findViewById(R.id.seekTime);
-            tvStartTime = itemView.findViewById(R.id.tvStartTime);
             tvCurrentTime = itemView.findViewById(R.id.tvCurrentTime);
-            tvEndTime = itemView.findViewById(R.id.tvEndTime);
             imgRain = itemView.findViewById(R.id.imgRain);
             imgWeather = itemView.findViewById(R.id.imgWeather);
             imgWind = itemView.findViewById(R.id.imgWind);
@@ -239,7 +247,9 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
         holder.tvTemp.setText(tempInt + "");
         holder.tvRain.setText(detailWeather.getRain());
         holder.tvWind.setText(detailWeather.getWind().getSpeed());
-        holder.tvCurrentTime.setText(detailWeather.getDt_txt().split(" ")[1]);
+        String[] strings = detailWeather.getDt_txt().split(" ")[1].split(":");
+        String string = strings[0]+":"+strings[1];
+        holder.tvCurrentTime.setText(string);
 
         // show image
         holder.imgWeather.setImageResource(getImage(detailWeather.getWeather().getIcon()));

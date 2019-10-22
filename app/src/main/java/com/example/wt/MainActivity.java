@@ -43,6 +43,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.lang.reflect.Array;
@@ -92,36 +93,42 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Start: Access data offline
+        db = FirebaseFirestore.getInstance();
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build();
+        db.setFirestoreSettings(settings);
+        // End
+
         tabLayout = findViewById(R.id.tab_layout);
         viewPager = findViewById(R.id.view_paper);
         toolbar = findViewById(R.id.toolbar);
-        boolean flag =true;
-        while(true){
-            flag=isNetworkAvailable();
-            if(flag){
-                break;
-            }
-            else{
-                try {
-                    Toast.makeText(this,"No Internet, please connect internet!!!",Toast.LENGTH_SHORT).show();
-                    Thread.sleep(1000);
-                    Log.d("data","Internet failer");
+        boolean flag = true;
+//        while (true) {
+            flag = isNetworkAvailable();
+//            if (flag) {
+//                break;
+//            } else {
+//                try {
+//                    Toast.makeText(this, "No Internet, please connect internet!!!", Toast.LENGTH_SHORT).show();
+//                    Thread.sleep(1000);
+//                    Log.d("data", "Internet failer");
+//
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
 
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        if(flag){ // có internet
+        if (flag) { // có internet
             this.ID = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
 //        this.ID = "12345";
             // Kiểm tra có id devices không
-            checkHistory();
+            isHistory();
 
 
 //            setSupportActionBar(toolbar);
-
 
 
             WeatherFragment weatherFragment = new WeatherFragment();
@@ -135,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
             viewPagerAdapter.AddFragment(historyFragment, "HISTORY");
             viewPagerAdapter.AddFragment(mapFragment, "MAP");
 
-// Start: send lon lat lấy được từ Map fragment
+            // Start: send lon lat lấy được từ Map fragment
             Intent intent = getIntent();
             String keyLog = intent.getStringExtra("keyLog"),
                     keyLat = intent.getStringExtra("keyLat");
@@ -145,23 +152,50 @@ public class MainActivity extends AppCompatActivity {
                 bundle.putString("valueLat", keyLat);
                 weatherFragment.setArguments(bundle);
             }
-// End
+            // End
 
 
             viewPager.setAdapter(viewPagerAdapter);
             tabLayout.setupWithViewPager(viewPager);
         }
+        else{
+            Toast.makeText(this, "No Internet, please connect internet!!!", Toast.LENGTH_LONG).show();
+            finish();
+        }
 
 
     }
+
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+//        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+////        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+//        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+        boolean haveConectedWifi = false;
+        boolean haveConectedMobile = false;
+        NetworkInfo[] networkInfos = connectivityManager.getAllNetworkInfo();
+        HashMap<String, String> hashMap = new HashMap<>();
+        for (NetworkInfo ni : networkInfos) {
+            String name = ni.getTypeName();
+            String state = ni.getState().toString();
+            hashMap.put(name, state);
+//            if (ni.getTypeName().equalsIgnoreCase("WIFI")) {
+//                haveConectedWifi = true;
+//                if (ni.getTypeName().equalsIgnoreCase("MOBILE")) {
+//                    haveConectedMobile = true;
+//                }
+//            }
+
+        }
+        if (hashMap.get("MOBILE").equals("CONNECTED") || hashMap.get("WIFI").equals("CONNECTED")) {
+            return true;
+        }
+        return false;
     }
 
-    public void checkHistory(){
+
+    public void isHistory() {
         db = FirebaseFirestore.getInstance();
         DocumentReference docRef = db.collection(MainActivity.getID()).document("0");
         docRef.get()
@@ -177,8 +211,8 @@ public class MainActivity extends AppCompatActivity {
                                 Log.d("data", "No such document");
 
                                 db = FirebaseFirestore.getInstance();
-                                HashMap<String ,Integer> hashMap = new HashMap<>();
-                                hashMap.put("0",0);
+                                HashMap<String, Integer> hashMap = new HashMap<>();
+                                hashMap.put("0", 0);
                                 db.collection(MainActivity.getID()).document("0").set(hashMap);
 
 
@@ -226,14 +260,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void setData(City city, HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap) {
+    private void setData(City
+                                 city, HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap) {
         this.city = city;
         this.detailWeatherHashMap = detailWeatherHashMap;
     }
 
 
     // Phân loại times theo từng date
-    private HashMap<String, ArrayList<DetailWeather>> fetchTimeOfDate(ArrayList<Object> arrayList) {
+    private HashMap<String, ArrayList<DetailWeather>> fetchTimeOfDate
+    (ArrayList<Object> arrayList) {
         ArrayList<DetailWeather> detailWeatherList = new ArrayList<>(); // list chứa toàn bộ data của date
         for (int i = 0; i < arrayList.size(); i++) {
             detailWeatherList.add(getWeatherOfList((HashMap<String, Object>) arrayList.get(i)));
@@ -324,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
         lat = hashMap1.get("lat").toString();
         Coords coords = new Coords(lon, lat);
 
-        return new City(coords, country, name, sunrise, sunset, timezone);
+        return new City(coords, country, name, sunrise, sunset, timezone, id);
     }
 
 

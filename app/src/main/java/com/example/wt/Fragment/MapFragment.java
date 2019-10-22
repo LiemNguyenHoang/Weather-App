@@ -83,6 +83,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private Button btnLoglat;
     private TextView tvLon;
     private TextView tvLat;
+    private boolean firstTime;
 
     private boolean mLocationPermissionGranted;
     private Location mLastKnownLocation;
@@ -150,10 +151,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
-
+            firstTime = true;
         btnLoglat = view.findViewById(R.id.btnLoglat);
         tvLon = view.findViewById(R.id.tvLon);
-        tvLat=view.findViewById(R.id.tvLat);
+        tvLon.setText("0.0");
+        tvLat = view.findViewById(R.id.tvLat);
+        tvLat.setText("0.0");
 
         if (mLocationPermissionGranted) {
             Log.d("data", "Permission OK");
@@ -165,8 +168,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             Toast.makeText(getContext(), "Permission Failer", Toast.LENGTH_LONG).show();
         }
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+//        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+//        mapFragment.getMapAsync(this);
 
         return view;
     }
@@ -199,10 +202,35 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             this.mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
                 @Override
                 public boolean onMyLocationButtonClick() {
+//                    if(firstTime==true){
+//                        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+//                            @Override
+//                            public boolean onMyLocationButtonClick() {
+//                                return false;
+//                            }
+//                        });
+//                    }
+
+                    LatLng latLng1 = mMap.getCameraPosition().target;
+//                    mMap.;
+
+                    firstTime = false;
+                    LatLng latLng = mMap.getCameraPosition().target;
+
+                    int i = 0;
+                    // Start: Check lon lat có lấy được weather
+                    double lat = latLng.latitude;
+                    double lon = latLng.longitude;
+//                int id = getIdLocate(lat,lon);
+//                String name = getNameLocate(id);
+//                    if(lat!=0.0&&lon!=0.0){
+//
+                    tvLat.setText(lat + "");
+                    tvLon.setText(lon + "");
+//                    }
                     return false;
                 }
             });
-
             this.mMap.setOnMyLocationClickListener(new GoogleMap.OnMyLocationClickListener() {
                 @Override
                 public void onMyLocationClick(@NonNull Location location) {
@@ -211,6 +239,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     if (currentMarker != null) {
                         currentMarker.remove();
                     }
+                    int i = 0;
                     currentMarker = mMap.addMarker(new MarkerOptions()
                             .title("Here")
                             // Sets the zoom
@@ -262,26 +291,33 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     // Start: Check lon lat có lấy được weather
                     double lat = Double.parseDouble(tvLat.getText().toString());
                     double lon = Double.parseDouble(tvLon.getText().toString());
-//                int id = getIdLocate(lat,lon);
-//                String name = getNameLocate(id);
 
+                    if ((tvLat.getText().toString().equals("0.0")==false) && (tvLon.getText().toString().equals("0.0")==false)) {
+
+
+                    }
                     boolean resultLocation = checkLocation(lat, lon);
                     // End
-                    if (!resultLocation) {
+                    if (resultLocation == false) {
                         Toast.makeText(getContext(), "Failed to get the weather !!!", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if (!tvLat.getText().toString().equals("") && !tvLon.getText().toString().equals("")) {
-                        Intent intent = new Intent(getActivity().getBaseContext(),
-                                MainActivity.class);
-                        intent.putExtra("keyLog", tvLon.getText());
-                        intent.putExtra("keyLat", tvLat.getText());
-                        getActivity().startActivity(intent);
 
-                        Toast.makeText(getContext(), tvLon.getText() + "|" + tvLat.getText(), Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(getContext(), "Failed to get location !!!", Toast.LENGTH_SHORT).show();
+
+                        boolean b3 = (tvLat.getText().toString().equals("0.0") == true && tvLon.getText().toString().equals("0.0") == true);
+
+                        if ((tvLat.getText().toString().equals("0.0")==false) && (tvLon.getText().toString().equals("0.0")==false)) {
+                            Intent intent = new Intent(getActivity().getBaseContext(),
+                                    MainActivity.class);
+                            intent.putExtra("keyLog", tvLon.getText());
+                            intent.putExtra("keyLat", tvLat.getText());
+                            getActivity().startActivity(intent);
+
+                            Toast.makeText(getContext(), tvLon.getText() + "|" + tvLat.getText(), Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getContext(), "Failed to get location !!!", Toast.LENGTH_SHORT).show();
+                        }
                     }
+
                 }
             });
         }

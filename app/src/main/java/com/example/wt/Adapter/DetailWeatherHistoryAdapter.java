@@ -62,12 +62,12 @@ public class DetailWeatherHistoryAdapter extends RecyclerView.Adapter<DetailWeat
         private TextView tvTemp;
         private TextView tvRain;
         private TextView tvWind;
-        private TextView tvStartTime;
+//        private TextView tvStartTime;
         private TextView tvCurrentTime;
         private ImageView imgWeather;
         private ImageView imgWind;
         private ImageView imgRain;
-        private TextView tvEndTime;
+//        private TextView tvEndTime;
         private SeekBar seekTime;
         private Button btnExpand;
         private LinearLayout linearLayout;
@@ -84,16 +84,16 @@ public class DetailWeatherHistoryAdapter extends RecyclerView.Adapter<DetailWeat
             btnExpand = itemView.findViewById(R.id.btnExpand);
             linearLayout = itemView.findViewById(R.id.linearLayout);
             seekTime = itemView.findViewById(R.id.seekTime);
-            tvStartTime = itemView.findViewById(R.id.tvStartTime);
+//            tvStartTime = itemView.findViewById(R.id.tvStartTime);
             tvCurrentTime = itemView.findViewById(R.id.tvCurrentTime);
-            tvEndTime = itemView.findViewById(R.id.tvEndTime);
+//            tvEndTime = itemView.findViewById(R.id.tvEndTime);
             imgRain = itemView.findViewById(R.id.imgRain);
             imgWeather = itemView.findViewById(R.id.imgWeather);
             imgWind = itemView.findViewById(R.id.imgWind);
 
-            tvStartTime.setVisibility(View.GONE);
+//            tvStartTime.setVisibility(View.GONE);
             tvCurrentTime.setVisibility(View.GONE);
-            tvEndTime.setVisibility(View.GONE);
+//            tvEndTime.setVisibility(View.GONE);
             seekTime.setVisibility(View.GONE);
             btnExpand.setVisibility(View.GONE);
 
