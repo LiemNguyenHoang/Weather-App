@@ -40,6 +40,7 @@ import com.example.wt.Parameter.Current.WeatherCurrent;
 import com.example.wt.R;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -152,6 +153,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
             firstTime = true;
+
+            mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
         btnLoglat = view.findViewById(R.id.btnLoglat);
         tvLon = view.findViewById(R.id.tvLon);
         tvLon.setText("0.0");
@@ -199,65 +202,102 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             this.mMap = googleMap;
             this.mMap.getUiSettings().setZoomControlsEnabled(true);
             this.mMap.setMyLocationEnabled(true);
-            this.mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
-                @Override
-                public boolean onMyLocationButtonClick() {
-//                    if(firstTime==true){
-//                        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
-//                            @Override
-//                            public boolean onMyLocationButtonClick() {
-//                                return false;
-//                            }
-//                        });
-//                    }
 
-                    LatLng latLng1 = mMap.getCameraPosition().target;
-//                    mMap.;
+            // Start: temp
+            try {
+                if (mLocationPermissionGranted) {
+                    Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+                    locationResult.addOnCompleteListener(getActivity(), new OnCompleteListener<Location>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Location> task) {
+                            if (task.isSuccessful()) {
+                                // Set the map's camera position to the current location of the device.
+                                mLastKnownLocation = task.getResult();
 
-                    firstTime = false;
-                    LatLng latLng = mMap.getCameraPosition().target;
+                                double lon = mLastKnownLocation.getLongitude();
+                                double lat = mLastKnownLocation.getLatitude();
+                                tvLat.setText(lat+"");
+                                tvLon.setText(lon+"");
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(mLastKnownLocation.getLatitude(),
+                                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                            } else {
+                                Log.d(TAG, "Current location is null. Using defaults.");
+                                Log.e(TAG, "Exception: %s", task.getException());
+                                mMap.moveCamera(CameraUpdateFactory
+                                        .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+                                mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                            }
+                        }
+                    });
+                }
+            } catch (SecurityException e)  {
+                Log.e("Exception: %s", e.getMessage());
+            }
 
-                    int i = 0;
-                    // Start: Check lon lat có lấy được weather
-                    double lat = latLng.latitude;
-                    double lon = latLng.longitude;
-//                int id = getIdLocate(lat,lon);
-//                String name = getNameLocate(id);
-//                    if(lat!=0.0&&lon!=0.0){
+            // End
+
+
 //
-                    tvLat.setText(lat + "");
-                    tvLon.setText(lon + "");
+//            this.mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+//                @Override
+//                public boolean onMyLocationButtonClick() {
+////                    if(firstTime==true){
+////                        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+////                            @Override
+////                            public boolean onMyLocationButtonClick() {
+////                                return false;
+////                            }
+////                        });
+////                    }
+//
+//                    LatLng latLng1 = mMap.getCameraPosition().target;
+////                    mMap.;
+//
+//                    firstTime = false;
+//                    LatLng latLng = mMap.getCameraPosition().target;
+//
+//                    int i = 0;
+//                    // Start: Check lon lat có lấy được weather
+//                    double lat = latLng.latitude;
+//                    double lon = latLng.longitude;
+////                int id = getIdLocate(lat,lon);
+////                String name = getNameLocate(id);
+////                    if(lat!=0.0&&lon!=0.0){
+////
+//                    tvLat.setText(lat + "");
+//                    tvLon.setText(lon + "");
+////                    }
+//                    return false;
+//                }
+//            });
+//            this.mMap.setOnMyLocationClickListener(new GoogleMap.OnMyLocationClickListener() {
+//                @Override
+//                public void onMyLocationClick(@NonNull Location location) {
+//                    Toast.makeText(getContext(), location.getLatitude() + ":" + location.getLongitude(), Toast.LENGTH_SHORT).show();
+//
+//                    if (currentMarker != null) {
+//                        currentMarker.remove();
 //                    }
-                    return false;
-                }
-            });
-            this.mMap.setOnMyLocationClickListener(new GoogleMap.OnMyLocationClickListener() {
-                @Override
-                public void onMyLocationClick(@NonNull Location location) {
-                    Toast.makeText(getContext(), location.getLatitude() + ":" + location.getLongitude(), Toast.LENGTH_SHORT).show();
-
-                    if (currentMarker != null) {
-                        currentMarker.remove();
-                    }
-                    int i = 0;
-                    currentMarker = mMap.addMarker(new MarkerOptions()
-                            .title("Here")
-                            // Sets the zoom
-//                        .bearing(90)
-                            .position(new LatLng(location.getLatitude(), location.getLongitude())));
-
-                    currentMarker.showInfoWindow();
-
-                    CameraPosition cameraPosition = new CameraPosition.Builder()
-                            .target(new LatLng(location.getLatitude(), location.getLongitude()))             // Sets the center of the map to location user
-                            .zoom(10)                   // Sets the zoom
-//                        .bearing(90)                // Sets the orientation of the camera to east
-//                        .tilt(40)                   // Sets the tilt of the camera to 30 degrees
-                            .build();                   // Creates a CameraPosition from the builder
-                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
-                }
-            });
+//                    int i = 0;
+//                    currentMarker = mMap.addMarker(new MarkerOptions()
+//                            .title("Here")
+//                            // Sets the zoom
+////                        .bearing(90)
+//                            .position(new LatLng(location.getLatitude(), location.getLongitude())));
+//
+//                    currentMarker.showInfoWindow();
+//
+//                    CameraPosition cameraPosition = new CameraPosition.Builder()
+//                            .target(new LatLng(location.getLatitude(), location.getLongitude()))             // Sets the center of the map to location user
+//                            .zoom(10)                   // Sets the zoom
+////                        .bearing(90)                // Sets the orientation of the camera to east
+////                        .tilt(40)                   // Sets the tilt of the camera to 30 degrees
+//                            .build();                   // Creates a CameraPosition from the builder
+//                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+//
+//                }
+//            });
             this.mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                 @Override
                 public void onMapClick(LatLng latLng) {

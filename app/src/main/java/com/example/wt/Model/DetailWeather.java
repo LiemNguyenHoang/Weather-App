@@ -8,6 +8,7 @@ public class DetailWeather {
     Weathers Weather;
     Winds Wind;
     Mains Main;
+    String Country;
 
     public DetailWeather() {
     }
@@ -16,22 +17,32 @@ public class DetailWeather {
         Dt_txt = dt_txt;
     }
 
-    public DetailWeather(String dt_txt, String clouds, String rain, Weathers weather, Winds wind, Mains main) {
+    public DetailWeather(String dt_txt, String clouds, String rain, Weathers weather, Winds wind, Mains main,String country) {
         Dt_txt = dt_txt;
         Clouds = clouds;
         Rain = rain;
         Weather = weather;
         Wind = wind;
         Main = main;
+        Country = country;
     }
 
-    public DetailWeather(String dt_txt, String rain, Weathers weather, Winds wind, Mains main, String locate) {
+    public String getCountry() {
+        return Country;
+    }
+
+    public void setCountry(String country) {
+        Country = country;
+    }
+
+    public DetailWeather(String dt_txt, String rain, Weathers weather, Winds wind, Mains main, String locate,String country) {
         Dt_txt = dt_txt;
         Rain = rain;
         Weather = weather;
         Wind = wind;
         Main = main;
         Locate = locate;
+        Country = country;
     }
 
     public String getLocate() {

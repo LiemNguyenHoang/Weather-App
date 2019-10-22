@@ -334,7 +334,10 @@ public class MainActivity extends AppCompatActivity {
         String tempMin = hashMapMains.get("temp_min").toString();
         Mains mains = new Mains(hum, pre, tem, tempMax, tempMin);
 
-        return new DetailWeather(dt_txt, clouds, rain, weathers, winds, mains);
+        HashMap<String, Object> hashMapSys= (HashMap<String, Object>) hashMap.get("sys");
+        String country = hashMapSys.get("country").toString();
+
+        return new DetailWeather(dt_txt, clouds, rain, weathers, winds, mains,country);
     }
 
     // Lấy toàn bộ data của city

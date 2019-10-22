@@ -105,7 +105,7 @@ public class DetailWeatherHistoryAdapter extends RecyclerView.Adapter<DetailWeat
         String sss = detailWeather.getMain().getTemp();
         double d = Double.parseDouble(sss);
         int tempInt = (int) Math.round(d);
-        holder.tvLocate.setText(detailWeather.getLocate());
+        holder.tvLocate.setText(detailWeather.getLocate()+", "+detailWeather.getCountry());
         holder.tvTime.setText(detailWeather.getDt_txt());
         holder.tvTemp.setText(tempInt + "");
         holder.tvRain.setText(detailWeather.getRain());

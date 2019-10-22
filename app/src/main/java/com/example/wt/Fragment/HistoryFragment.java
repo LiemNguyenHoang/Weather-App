@@ -109,7 +109,6 @@ public class HistoryFragment extends Fragment {
     }
 
     private void showWeatherCurrent() {
-        String idDevices = Settings.Secure.getString(getActivity().getContentResolver(), Settings.Secure.ANDROID_ID);
         db = FirebaseFirestore.getInstance();
 
         db.collection(MainActivity.getID()).get()
@@ -194,7 +193,11 @@ public class HistoryFragment extends Fragment {
         String tem = hashMapMains.get("temp").toString();
         Mains mains = new Mains(tem);
 
-        return new DetailWeather(dt_txt, rain, weathers, winds, mains, locate);
+        HashMap<String, Object> hashMapSys= (HashMap<String, Object>) hashMap.get("sys");
+        String country = hashMapSys.get("country").toString();
+
+        return new DetailWeather(dt_txt, rain, weathers, winds, mains, locate,country);
+//        return new DetailWeather( );
     }
 
     // hashmap chứa time và id

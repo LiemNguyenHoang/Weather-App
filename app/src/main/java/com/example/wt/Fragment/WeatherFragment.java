@@ -278,8 +278,7 @@ public class WeatherFragment extends Fragment {
 
         detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
-        rv_weather.setLayoutManager(linearLayoutManager);
+
 
         // Nhận Latlon từ Map fragment
         if (getArguments() != null) {
@@ -322,6 +321,8 @@ public class WeatherFragment extends Fragment {
             }
         });
 
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+        rv_weather.setLayoutManager(linearLayoutManager);
         return view;
     }
 
@@ -587,7 +588,7 @@ public class WeatherFragment extends Fragment {
 
                             // lấy toàn bộ data của list
                             ArrayList<Object> arrayList = (ArrayList<Object>) map.get("list");
-                            HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = fetchTimeOfDate(arrayList);
+                            HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = fetchTimeOfDate(arrayList,city);
                             listOfWeathers.add(new ListOfWeather(city, detailWeatherHashMap));
                             detaiWeatherAdapter.notifyDataSetChanged();
                         } else {
@@ -624,10 +625,10 @@ public class WeatherFragment extends Fragment {
 
 
     // Phân loại times theo từng date
-    private HashMap<String, ArrayList<DetailWeather>> fetchTimeOfDate(ArrayList<Object> arrayList) {
+    private HashMap<String, ArrayList<DetailWeather>> fetchTimeOfDate(ArrayList<Object> arrayList,City city) {
         ArrayList<DetailWeather> detailWeatherList = new ArrayList<>(); // list chứa toàn bộ data của date
         for (int i = 0; i < arrayList.size(); i++) {
-            detailWeatherList.add(getWeatherOfList((HashMap<String, Object>) arrayList.get(i)));
+            detailWeatherList.add(getWeatherOfList((HashMap<String, Object>) arrayList.get(i),city));
         }
 
         HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = new HashMap<>(); // Hashmap chứa list time theo từng date
@@ -655,7 +656,7 @@ public class WeatherFragment extends Fragment {
     }
 
     // Lấy toàn bộ data của list rồi trả về chi tiết của mỗi list
-    public DetailWeather getWeatherOfList(HashMap<String, Object> hashMap) {
+    public DetailWeather getWeatherOfList(HashMap<String, Object> hashMap,City city) {
 
         String dt_txt = hashMap.get("dt_txt").toString();
 
@@ -693,7 +694,9 @@ public class WeatherFragment extends Fragment {
         String tempMin = hashMapMains.get("temp_min").toString();
         Mains mains = new Mains(hum, pre, tem, tempMax, tempMin);
 
-        return new DetailWeather(dt_txt, clouds, rain, weathers, winds, mains);
+        String country = city.getCountry();
+
+        return new DetailWeather(dt_txt, clouds, rain, weathers, winds, mains,country);
     }
 
 }

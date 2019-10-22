@@ -129,7 +129,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
         });
         holder.seekTime.setMax(nWeather - 1);
         // show display at position 0
-        holder.tvLocate.setText(city.getName());
+        holder.tvLocate.setText(city.getName()+", "+city.getCountry());
 
         showDisplay(listCurrent.get(0), holder);
         // show display for date forecast
