@@ -1,6 +1,7 @@
 package com.example.wt.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,10 +10,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.wt.MainActivity;
 import com.example.wt.Model.City;
 import com.example.wt.Model.DetailWeather;
 import com.example.wt.Model.ListOfWeather;
@@ -45,9 +48,24 @@ public class DetailWeatherHistoryAdapter extends RecyclerView.Adapter<DetailWeat
     }
 
     @Override
-    public void onBindViewHolder(@NonNull DetailWeatherHistoryViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull DetailWeatherHistoryViewHolder holder, final int position) {
         this.detailWeather = listOfWeathers.get(position);
-            showDisplay(detailWeather,holder);
+        showDisplay(detailWeather, holder);
+
+        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DetailWeather detailWeather11 = listOfWeathers.get(position);
+                Intent intent = new Intent(context, MainActivity.class);
+                intent.putExtra("id_locationTime", detailWeather11.getId()
+                        + "," + listOfWeathers.get(position).getDt_txt().split(" ")[0]
+                +","+listOfWeathers.size());
+
+                String size = listOfWeathers.size()+"";
+                context.startActivity(intent);
+
+            }
+        });
     }
 
     @Override
@@ -62,14 +80,15 @@ public class DetailWeatherHistoryAdapter extends RecyclerView.Adapter<DetailWeat
         private TextView tvTemp;
         private TextView tvRain;
         private TextView tvWind;
-//        private TextView tvStartTime;
+        //        private TextView tvStartTime;
         private TextView tvCurrentTime;
         private ImageView imgWeather;
         private ImageView imgWind;
         private ImageView imgRain;
-//        private TextView tvEndTime;
+        //        private TextView tvEndTime;
         private SeekBar seekTime;
         private Button btnExpand;
+        private Button btnDelete;
         private LinearLayout linearLayout;
 
 
@@ -82,6 +101,7 @@ public class DetailWeatherHistoryAdapter extends RecyclerView.Adapter<DetailWeat
             tvRain = itemView.findViewById(R.id.tvRain);
             tvWind = itemView.findViewById(R.id.tvWind);
             btnExpand = itemView.findViewById(R.id.btnExpand);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
             linearLayout = itemView.findViewById(R.id.linearLayout);
             seekTime = itemView.findViewById(R.id.seekTime);
 //            tvStartTime = itemView.findViewById(R.id.tvStartTime);
@@ -105,7 +125,7 @@ public class DetailWeatherHistoryAdapter extends RecyclerView.Adapter<DetailWeat
         String sss = detailWeather.getMain().getTemp();
         double d = Double.parseDouble(sss);
         int tempInt = (int) Math.round(d);
-        holder.tvLocate.setText(detailWeather.getLocate()+", "+detailWeather.getCountry());
+        holder.tvLocate.setText(detailWeather.getLocate() + ", " + detailWeather.getCountry()+"|"+detailWeather.getId());
         holder.tvTime.setText(detailWeather.getDt_txt());
         holder.tvTemp.setText(tempInt + "");
         holder.tvRain.setText(detailWeather.getRain());

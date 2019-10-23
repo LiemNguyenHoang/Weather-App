@@ -1,6 +1,8 @@
 package com.example.wt.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,8 +24,12 @@ import com.example.wt.Model.ListOfWeather;
 import com.example.wt.Model.Weathers;
 import com.example.wt.R;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -32,9 +39,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
-public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapter.DetailWeatherViewHolder> {
+public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapter.DetailWeatherViewHolder> implements View.OnClickListener {
     private static final String TAG = "DetaiWeatherAdapter";
     private HashMap<String, ArrayList<DetailWeather>> detailWeather;
     private Context context;
@@ -42,12 +50,16 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
     private LayoutInflater layoutInflater;
     private boolean flag;
     private String id;
+    FirebaseFirestore db;
+    int count = 0;
 
     public DetaiWeatherAdapter(Context context, ArrayList<ListOfWeather> listOfWeather) {
 
         this.context = context;
         this.listOfWeathers = listOfWeather;
         layoutInflater = LayoutInflater.from(context);
+
+
     }
 
     public DetaiWeatherAdapter(Context context, ArrayList<ListOfWeather> listOfWeather, String id) {
@@ -104,32 +116,32 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
             public void onClick(View v) {
 //                listCurrent.remove(position);
 //                 Lấy id của locate cần xóa
-                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-                String time = sdf.format(new Date());
-                String id = listOfWeathers.get(position).getCity().getId();
+//                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+//                String time = sdf.format(new Date());
+//                String id = listOfWeathers.get(position).getCity().getId();
+//
+//                // Gửi id location cho weather fragment để xóa
+//                SharedPreferences pref = context.getSharedPreferences("id_location",Context.MODE_PRIVATE);
+//                SharedPreferences.Editor editor = pref.edit();
+//                editor.putString("id_weather",listOfWeathers.get(position).getCity().getId());
+//                editor.apply();
 
 
+                Intent intent = new Intent(context,MainActivity.class);
+                intent.putExtra("id_location", listOfWeathers.get(position).getCity().getId());
+                context.startActivity(intent);
 
-                int i = 0;
-                FirebaseFirestore db = FirebaseFirestore.getInstance();
-                db.collection(MainActivity.getID())
-                        .get()
-                        .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                            @Override
-                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                ArrayList<Object> list = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
-                                ArrayList<Long> listIdLocate = new ArrayList<>();
-                            }
-                        });
 
-                // xóa trong firebase
+//                listOfWeathers.remove(position);
+//                notifyDataSetChanged();
+//                deleteUpdateLocate(id);
 
-                notifyDataSetChanged();
+
             }
         });
         holder.seekTime.setMax(nWeather - 1);
         // show display at position 0
-        holder.tvLocate.setText(city.getName()+", "+city.getCountry());
+        holder.tvLocate.setText(city.getName() + ", " + city.getCountry()+"|"+city.getId());
 
         showDisplay(listCurrent.get(0), holder);
         // show display for date forecast
@@ -155,9 +167,134 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
 
     }
 
+
+    private void deleteUpdateLocate(final String id) {
+        db = FirebaseFirestore.getInstance();
+        CollectionReference colRef = null;
+        colRef = db.collection(MainActivity.getID());
+
+        int i = 0;
+        colRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (queryDocumentSnapshots.isEmpty()) {
+                    Log.d("error", "Collection is empty");
+                } else {
+                    // Start: Lấy date của locate
+                    ArrayList<Object> listHashMap = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
+
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                    String time = sdf.format(new Date());
+
+                    for (int i = 0; i < listHashMap.size(); i++) {
+                        HashMap<String, Long> hashMap = (HashMap<String, Long>) listHashMap.get(i);
+
+                        Long idLong = Long.parseLong(id.trim());
+
+                        if (hashMap.containsKey(time) == true && hashMap.containsValue(idLong) == true) {
+                            listHashMap.remove(i); // xóa id locate trong listHashMap
+                            break;
+                        }
+
+                        int idid = 0;
+                    }
+                    count = listHashMap.size();
+                    deleteCollection();
+                    if(count<1){
+
+                        insertCollectioin(listHashMap);
+                    }
+
+                    int i = 0;
+
+
+                    //insert vào locate của id device
+//                    insertIdLocateOfDevice(listHashMap);
+//                    insertCurrent(id, time);
+//                    insertForecast(id, time);
+
+
+                }
+            }
+        });
+
+
+    }
+
+    private void insertCollectioin(ArrayList<Object> listHashMap) {
+        db = FirebaseFirestore.getInstance();
+
+        for (int i = 0; i < listHashMap.size(); i++) {
+            HashMap<String, String> hashMap = new HashMap<>();
+            hashMap = (HashMap<String, String>) listHashMap.get(i);
+
+            db.collection(MainActivity.getID())
+                    .document(i + "")
+                    .set(hashMap)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.d("data", "Insert locate of device success");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+
+                            Log.d("data", "Insert locate of device success");
+                        }
+                    });
+        }
+
+
+    }
+
+    private void deleteCollection() {
+        db = FirebaseFirestore.getInstance();
+        HashMap<String, String> hashMap = new HashMap<>();
+        hashMap.put("", "");
+        db.collection(MainActivity.getID())
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (queryDocumentSnapshots.isEmpty()) {
+                            Log.d("error", "Collection is empty");
+                        } else {
+                            ArrayList<Object> list = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
+                            for (int i = 0; i < list.size(); i++) {
+                                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                                db.collection(MainActivity.getID())
+                                        .document(i + "")
+                                        .delete()
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                count--;
+                                                Log.d(TAG, "DocumentSnapshot successfully deleted!");
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Log.w(TAG, "Error deleting document", e);
+                                            }
+                                        });
+                            }
+                        }
+
+                    }
+                });
+    }
+
     @Override
     public int getItemCount() {
         return listOfWeathers.size();
+    }
+
+    @Override
+    public void onClick(View v) {
+
     }
 
 
@@ -248,7 +385,7 @@ public class DetaiWeatherAdapter extends RecyclerView.Adapter<DetaiWeatherAdapte
         holder.tvRain.setText(detailWeather.getRain());
         holder.tvWind.setText(detailWeather.getWind().getSpeed());
         String[] strings = detailWeather.getDt_txt().split(" ")[1].split(":");
-        String string = strings[0]+":"+strings[1];
+        String string = strings[0] + ":" + strings[1];
         holder.tvCurrentTime.setText(string);
 
         // show image

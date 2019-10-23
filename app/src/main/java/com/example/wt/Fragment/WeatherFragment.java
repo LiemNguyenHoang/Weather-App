@@ -2,6 +2,8 @@ package com.example.wt.Fragment;
 
 
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -40,6 +42,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
@@ -59,8 +62,9 @@ import java.util.jar.JarInputStream;
 public class WeatherFragment extends Fragment {
     private DetaiWeatherAdapter detaiWeatherAdapter;
     private ArrayList<ListOfWeather> listOfWeathers;
+    TextView tvId;
     FirebaseFirestore db;
-    String date;
+    String idLocate, nameLocate;
     int id;
     RecyclerView rv_weather;
     ProgressDialog progressDialog;
@@ -69,6 +73,88 @@ public class WeatherFragment extends Fragment {
 
     public WeatherFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
+                             final Bundle savedInstanceState) {
+        final View view = inflater.inflate(R.layout.fragment_weather, container, false);
+        tvId = view.findViewById(R.id.tvId);
+        swiperefresh = view.findViewById(R.id.swiperefresh);
+        rv_weather = view.findViewById(R.id.rv_weather);
+        listOfWeathers = new ArrayList<>();
+
+        // Start: Tạo Progress Dialog
+        progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setTitle("Weather Loading");
+        progressDialog.setMessage("Please wait...");
+        progressDialog.setCancelable(true);
+        progressDialog.show();
+        // End
+        detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
+        // Nhận Latlon từ Map fragment
+        if (getArguments() != null) {
+            String valueLog = getArguments().getString("valueLog");
+            String valueLat = getArguments().getString("valueLat");
+            if (getArguments().getString("valueLog") != null && getArguments().getString("valueLat") != null) {
+                db = FirebaseFirestore.getInstance();
+                double lat = Double.parseDouble(valueLat);
+                double lon = Double.parseDouble(valueLog);
+                this.id = getIdLocate(lat, lon);
+                UpdateLocateOfDevices();
+
+//                listOfWeathers.clear();
+//                rv_weather.setAdapter(null);
+//                showWeatherLocate();
+//                detaiWeatherAdapter.notifyDataSetChanged();
+//                rv_weather.setAdapter(detaiWeatherAdapter);
+
+            }
+            if (getArguments().getString("idLocation") != null) {
+                String id = getArguments().getString("idLocation");
+
+                deleteLocation(id);
+            }
+            setArguments(null);
+        }
+
+        showWeatherLocate();
+        rv_weather.setAdapter(detaiWeatherAdapter);
+
+
+        swiperefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                listOfWeathers = new ArrayList<>();
+                detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
+                showWeatherLocate();
+                rv_weather.setAdapter(detaiWeatherAdapter);
+                swiperefresh.setRefreshing(false);
+            }
+        });
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+        rv_weather.setLayoutManager(linearLayoutManager);
+        return view;
+    }
+
+    public void deleteLocation(String id) {
+        db = FirebaseFirestore.getInstance();
+        db.collection(MainActivity.getID())
+                .document(id)
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("data", "Delete location id devie successfully!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w("data", "Delete location id devie failure!", e);
+                    }
+                });
     }
 
     public ArrayList<Long> getIdLocateUser(ArrayList<Object> list) {
@@ -143,96 +229,44 @@ public class WeatherFragment extends Fragment {
 
     // Start: Cập nhật lại list locate trong id devices
     public void UpdateLocateOfDevices() {
-        boolean flag = false;
-        CollectionReference colRef = null;
-        try {
-            colRef = db.collection(MainActivity.getID());
-//            colRef = db.collection("12345");
-        } catch (Exception e) {
-            flag = true;
-        }
-
-        int i = 0;
-        colRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                if (queryDocumentSnapshots.isEmpty()) {
-                    Log.d("error", "Collection is empty");
-                } else {
-                    // Start: Lấy date của locate
-                    ArrayList<Object> listHashMap = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
-                    ArrayList<Object> list = new ArrayList<>();
-                    HashMap<String, Long> hashMap = new HashMap<>();
-                    list.add(hashMap.put("0", (long) 0));
-                    boolean flag = false;
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-                    String time = sdf.format(new Date());
-
-                    for (int i = 0; i < listHashMap.size(); i++) {
-                        hashMap = new HashMap<>();
-                        hashMap = (HashMap<String, Long>) listHashMap.get(i);
+        db = FirebaseFirestore.getInstance();
 
 
-                        // Start: kiểm tra id có trong time không
-                        ArrayList<String> listKey = new ArrayList<>();
-                        for (String key : hashMap.keySet()) {
-                            listKey.add(key);
+        db.collection(MainActivity.getID())
+                .document(id + "")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            Map<String, Object> hashMap = new HashMap<>();
+                            int size = 0;
+                            if (task.getResult().getData() == null) {
+                                {
+                                    Map<String, String> map = new HashMap<>();
+                                    map.put("0", "");
+                                    db.collection(MainActivity.getID())
+                                            .document(String.valueOf(id))
+                                            .set(map);
+                                }
+
+                            } else {
+                                hashMap = task.getResult().getData();
+                                size = hashMap.size();
+                            }
+
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                            final String time = sdf.format(new Date());
+
+                            db.collection(MainActivity.getID())
+                                    .document(String.valueOf(id))
+                                    .update(time, "");
                         }
-                        String key = listKey.get(0);
-                        long value = hashMap.get(key);
-                        if (value == id) { // có id locate trong hashmap
-//                            hashMap.put(date, (long) id);
-                            ((HashMap<String, Long>) listHashMap.get(i)).put(time, (long) id);
-                            flag = true;
-                            break;
-                        }
-                        // End
+
 
                     }
-                    if (flag == false) { //chưa có locate trong list id device
-                        HashMap<String, Integer> hashMap1 = new HashMap<>();
-                        hashMap1.put(time, id);
-                        listHashMap.add(hashMap1);
-                    }
-                    for (int i = 0; i < listHashMap.size(); i++) {
-                        list.add(listHashMap.get(i));
-                    }
-
-                    int i = 0;
-
-//                    // Start: *
-//                        HashMap<Integer,String> hashMapTest = new HashMap<>();
-//                        for(int i = 0;i<list.size();i++){
-//                            HashMap<String,Integer> hashMap = new HashMap<>();
-//                            hashMap = (HashMap<String, Integer>) list.get(i);
-//                            hashMapTest.put(list.get(i).)
-//                        }
-//                    // End
-
-
-                    //insert vào locate của id device
-                    insertIdLocateOfDevice(listHashMap);
-                    insertCurrent(id, time);
-                    insertForecast(id, time);
-
-
-//                    ArrayList<String> listLocate = getLocate(list);
-//                    // End
-//                    int iasd = 0;
-//                    for (String locate : listLocate) {
-//                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-//                        String time = sdf.format(new Date());
-//                        insertForecast(locate, time);
-//                        insertCurrent(locate, time);
-//
-//                        time = "10-10-2019";
-//                        getWeather(locate, time);
-//                    }
-
-
-                }
-            }
-        });
+                });
     }
 
     // End
@@ -255,76 +289,6 @@ public class WeatherFragment extends Fragment {
 
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_weather, container, false);
-        // Inflate the layout for this fragment
-        swiperefresh = view.findViewById(R.id.swiperefresh);
-        rv_weather = view.findViewById(R.id.rv_weather);
-        listOfWeathers = new ArrayList<>();
-
-        // Start: Tạo Progress Dialog
-        progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setTitle("Weather Loading");
-        progressDialog.setMessage("Please wait...");
-        progressDialog.setCancelable(true);
-//        progressDialog.show();
-
-
-//        progressDialog.show();
-
-        // End
-
-        detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
-
-
-
-        // Nhận Latlon từ Map fragment
-        if (getArguments() != null) {
-            String valueLog = getArguments().getString("valueLog");
-            String valueLat = getArguments().getString("valueLat");
-            if (getArguments().getString("valueLog") != null && getArguments().getString("valueLat") != null) {
-                db = FirebaseFirestore.getInstance();
-                double lat = Double.parseDouble(valueLat);
-                double lon = Double.parseDouble(valueLog);
-                this.id = getIdLocate(lat, lon);
-                UpdateLocateOfDevices();
-
-                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-                String time = sdf.format(new Date());
-
-                insertCurrent((int) this.id, time);
-                insertForecast((int) this.id, time);
-
-            }
-            setArguments(null);
-
-        }
-
-        listOfWeathers.clear();
-        detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
-        showWeatherLocate();
-        rv_weather.setAdapter(detaiWeatherAdapter);
-
-
-        swiperefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-
-                listOfWeathers.clear();
-                detaiWeatherAdapter = new DetaiWeatherAdapter(getContext(), listOfWeathers);
-                showWeatherLocate();
-                rv_weather.setAdapter(detaiWeatherAdapter);
-
-                swiperefresh.setRefreshing(false);
-            }
-        });
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
-        rv_weather.setLayoutManager(linearLayoutManager);
-        return view;
-    }
 
     public void insertForecast(int id, String time) {
         WeatherForecast weatherForecast = new WeatherForecast();
@@ -366,35 +330,13 @@ public class WeatherFragment extends Fragment {
     }
 
     public void insertIdLocateOfDevice(ArrayList<Object> arrayList) {
-        int asd = 0;
-
-
         db = FirebaseFirestore.getInstance();
-//        HashMap<String,Object> hashMap = new HashMap<>();
 
         for (int i = 0; i < arrayList.size(); i++) {
-//            hashMap.put(i+"",arrayList.get(i));
-//        }
             HashMap<String, String> hashMap = new HashMap<>();
             hashMap = (HashMap<String, String>) arrayList.get(i);
 
-//                db.collection("12345").add(hashMap)
-//                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-//                    @Override
-//                    public void onSuccess(DocumentReference documentReference) {
-//                        Log.d("data","Insert id locate user success");
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//
-//                        Log.d("data","Insert id locate user failure");
-//                    }
-//                });
-
             db.collection(MainActivity.getID())
-//            db.collection("12345")
                     .document(i + "")
                     .set(hashMap)
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -411,69 +353,8 @@ public class WeatherFragment extends Fragment {
                         }
                     });
         }
-//        HashMap<String, Object> hashMap = new HashMap<>();
-//        for (int i = 0; i < arrayList.size(); i++) {
-//            hashMap.put(i + "", arrayList.get(i));
-//        }
-//        db.collection("12345")
-//                .add(hashMap)
-//                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-//                    @Override
-//                    public void onSuccess(DocumentReference documentReference) {
-//                        Log.d("data", "Insert locate of device succcess");
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//
-//                        Log.d("data", "Insert locate of device failure");
-//                    }
-//                });
     }
 
-    //    public void updateCurrent(String locate, String time) {
-//        WeatherCurrent weatherCurrent = new WeatherCurrent();
-//        db = FirebaseFirestore.getInstance();
-//        String json = null;
-//        json = RequestAPICurrent(locate);
-//        weatherCurrent.fetchData(json);
-//
-//        Map<String, Object> hashMap = new HashMap<>();
-//
-//        hashMap.put("base", weatherCurrent.getBase());
-//        hashMap.put("clouds", weatherCurrent.getClouds());
-//        hashMap.put("cod", weatherCurrent.getCod());
-//        hashMap.put("coord", weatherCurrent.getCoord());
-//        hashMap.put("dt", weatherCurrent.getDt());
-//        hashMap.put("id", weatherCurrent.getId());
-//        hashMap.put("main", weatherCurrent.getMain());
-//        hashMap.put("name", weatherCurrent.getName());
-//        hashMap.put("rain", weatherCurrent.getRain());
-//        hashMap.put("sys", weatherCurrent.getSys());
-//        hashMap.put("timezone", weatherCurrent.getTimezone());
-//        hashMap.put("weather", weatherCurrent.getWeather());
-//        hashMap.put("wind", weatherCurrent.getWind());
-//
-//        db.collection("Cities")
-//                .document(locate)
-//                .collection(time)
-//                .document("current")
-//                .update(hashMap)
-//                .addOnSuccessListener(new OnSuccessListener<Void>() {
-//                    @Override
-//                    public void onSuccess(Void aVoid) {
-//                        Log.d("data", "Update current complete");
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//                        Log.d("data", "Update current error");
-//                    }
-//                });
-//    }
-//
     public void insertCurrent(int id, String time) {
         WeatherCurrent weatherCurrent = new WeatherCurrent();
         db = FirebaseFirestore.getInstance();
@@ -524,50 +405,101 @@ public class WeatherFragment extends Fragment {
 
     public void showWeatherLocate() {
         db = FirebaseFirestore.getInstance();
-        boolean flag = false;
-        CollectionReference colRef = null;
-        try {
-            colRef = db.collection(MainActivity.getID());
-//            colRef = db.collection("12345");
-        } catch (Exception e) {
-            flag = true;
-        }
+        CollectionReference colRef = db.collection(MainActivity.getID());
 
-        int i = 0;
-        colRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                if (queryDocumentSnapshots.isEmpty()) {
-                    Log.d("error", "Collection is empty");
-                } else {
-                    // Start: Lấy date của locate
-                    ArrayList<Object> list = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
-                    ArrayList<Long> listIdLocate = new ArrayList<>();
-                    if (list.size() > 1) { //   có history của devices
-                        listIdLocate = getIdLocateUser(list);
-                        for (long id : listIdLocate) {
-                            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-                            String time = sdf.format(new Date());
+        colRef.get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            ArrayList<Long> listIdLocate = new ArrayList<>();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                listIdLocate.add(Long.parseLong(document.getId()));
+                            }
 
-                            String name = getNameLocate((int) id);
-                            insertCurrent((int) id, time);
-                            insertForecast((int) id, time);
+                            int size = listIdLocate.size();
+                            if (listIdLocate.size() > 1) {
 
-                            getWeather(name, time);
+//                                for (int id : listIdLocate) {
+                                for (int i = 1; i < listIdLocate.size(); i++) {
+                                    String a = String.valueOf(listIdLocate.get(i));
+                                    int  id = Integer.parseInt(a);
+                                    idLocate = String.valueOf(id);
+                                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                                    String time = sdf.format(new Date());
 
+                                    String name = getNameLocate(id);
+                                    nameLocate = name;
+
+                                    insertDevice(id,time);
+                                    insertCurrent(id,time);
+                                    insertForecast(id,time);
+
+                                    getWeather(name,time);
+
+                                }
+
+                                progressDialog.dismiss();
+                            } else {
+                                progressDialog.dismiss();
+                                Toast.makeText(getContext(), "Not data history", Toast.LENGTH_LONG).show();
+                            }
+
+
+                            int i = 0;
+                        } else {
+                            Log.d("data", "Error getting document id devices: ", task.getException());
                         }
-
-//                        progressDialog.dismiss();
-                    } else { // không  có history của devices
-//                        progressDialog.dismiss();
-                        Toast.makeText(getContext(), "Không có History", Toast.LENGTH_LONG).show();
                     }
+                });
 
+        // OK
+//        colRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+//            @Override
+//            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+//                if (queryDocumentSnapshots.isEmpty()) {
+//                    Log.d("error", "Collection is empty");
+//                } else {
+//                    // Start: Lấy date của locate
+//                    ArrayList<Object> list = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
+//                    ArrayList<Long> listIdLocate = new ArrayList<>();
+//                    if (list.size() > 1) { //   có history của devices
+//                        listIdLocate = getIdLocateUser(list);
+//                        for (long id : listIdLocate) {
+//                            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+//                            String time = sdf.format(new Date());
+//
+//                            String name = getNameLocate((int) id);
+//                            insertCurrent((int) id, time);
+//                            insertForecast((int) id, time);
+//
+//                            getWeather(name, time);
+//
+//                        }
+//
+////                        progressDialog.dismiss();
+//                    } else {
+//                        Toast.makeText(getContext(), "Không có History", Toast.LENGTH_LONG).show();
+//                    }
+//                }
+//            }
+//        });
+    }
 
-                }
-            }
-        });
+    private void insertDevice(int id, String time) {
+        Map<String, Object> hashMap = new HashMap<>();
+        hashMap.put(time, "");
 
+        db = FirebaseFirestore.getInstance();
+        db.collection(MainActivity.getID())
+                .document(id + "")
+                .update(hashMap)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Log.d("data", "Update time according to id device");
+                    }
+                });
     }
 
 
@@ -588,7 +520,7 @@ public class WeatherFragment extends Fragment {
 
                             // lấy toàn bộ data của list
                             ArrayList<Object> arrayList = (ArrayList<Object>) map.get("list");
-                            HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = fetchTimeOfDate(arrayList,city);
+                            HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = fetchTimeOfDate(arrayList, city);
                             listOfWeathers.add(new ListOfWeather(city, detailWeatherHashMap));
                             detaiWeatherAdapter.notifyDataSetChanged();
                         } else {
@@ -620,15 +552,15 @@ public class WeatherFragment extends Fragment {
         lat = hashMap1.get("lat").toString();
         Coords coords = new Coords(lon, lat);
 
-        return new City(coords, country, name, sunrise, sunset, timezone,id);
+        return new City(coords, country, name, sunrise, sunset, timezone, id);
     }
 
 
     // Phân loại times theo từng date
-    private HashMap<String, ArrayList<DetailWeather>> fetchTimeOfDate(ArrayList<Object> arrayList,City city) {
+    private HashMap<String, ArrayList<DetailWeather>> fetchTimeOfDate(ArrayList<Object> arrayList, City city) {
         ArrayList<DetailWeather> detailWeatherList = new ArrayList<>(); // list chứa toàn bộ data của date
         for (int i = 0; i < arrayList.size(); i++) {
-            detailWeatherList.add(getWeatherOfList((HashMap<String, Object>) arrayList.get(i),city));
+            detailWeatherList.add(getWeatherOfList((HashMap<String, Object>) arrayList.get(i), city));
         }
 
         HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap = new HashMap<>(); // Hashmap chứa list time theo từng date
@@ -656,7 +588,7 @@ public class WeatherFragment extends Fragment {
     }
 
     // Lấy toàn bộ data của list rồi trả về chi tiết của mỗi list
-    public DetailWeather getWeatherOfList(HashMap<String, Object> hashMap,City city) {
+    public DetailWeather getWeatherOfList(HashMap<String, Object> hashMap, City city) {
 
         String dt_txt = hashMap.get("dt_txt").toString();
 
@@ -696,7 +628,7 @@ public class WeatherFragment extends Fragment {
 
         String country = city.getCountry();
 
-        return new DetailWeather(dt_txt, clouds, rain, weathers, winds, mains,country);
+        return new DetailWeather(dt_txt, clouds, rain, weathers, winds, mains, country, id);
     }
 
 }

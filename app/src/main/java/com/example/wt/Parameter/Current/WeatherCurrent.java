@@ -215,7 +215,7 @@ public class WeatherCurrent {
 
     public WindCurrent FetchWind(JSONObject jsonObject) {
         double speed = 0.0;
-        double deg = 0.0;
+        double deg = 1.0;
         try {
             speed = jsonObject.getDouble("speed");
             deg = jsonObject.getDouble("deg");

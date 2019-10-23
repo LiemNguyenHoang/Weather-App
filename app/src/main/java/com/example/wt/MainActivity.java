@@ -44,6 +44,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.lang.reflect.Array;
@@ -58,12 +59,102 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     public static final String KEY_API = "4075de6ade4bc3ff857acc98a3d8395c";
     private static String ID;
+    private TextView tvIdLocation;
+    private TextView tvLonlat;
+    private TextView tvIdLocationTime;
     City city;
     HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap;
     TabLayout tabLayout;
     NonSwipeableViewPager viewPager;
     Toolbar toolbar;
     FirebaseFirestore db;
+    String time;
+    int idLocation;
+
+    //End
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+
+        tvLonlat = findViewById(R.id.tvLonlat);
+        tvIdLocation = findViewById(R.id.tvIDLocation);
+        tvIdLocationTime = findViewById(R.id.tvIDLocationTime);
+
+        // Start: Access data offline
+//        db = FirebaseFirestore.getInstance();
+//        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+//                .setPersistenceEnabled(true)
+//                .build();
+//        db.setFirestoreSettings(settings);
+        // End
+
+        tabLayout = findViewById(R.id.tab_layout);
+        viewPager = findViewById(R.id.view_paper);
+        toolbar = findViewById(R.id.toolbar);
+        boolean flag = isNetworkAvailable();
+
+
+        if (flag) { // có internet
+            this.ID = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+//            this.ID = "id_device";
+            // Kiểm tra có id devices không
+            isHistory();
+
+            WeatherFragment weatherFragment = new WeatherFragment();
+            HistoryFragment historyFragment = new HistoryFragment();
+            MapFragment mapFragment = new MapFragment();
+
+            ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), 0);
+
+            viewPagerAdapter.AddFragment(weatherFragment, "WEATHER");
+            viewPagerAdapter.AddFragment(historyFragment, "HISTORY");
+            viewPagerAdapter.AddFragment(mapFragment, "MAP");
+
+            // Start: send lon lat lấy được từ Map fragment
+            Intent intent = getIntent();
+            String keyLog = intent.getStringExtra("keyLog"),
+                    keyLat = intent.getStringExtra("keyLat"),
+                    idLocation = intent.getStringExtra("id_location"),
+                    idLocationTime = intent.getStringExtra("id_locationTime");
+            if (idLocation != null) {
+                tvIdLocation.setText(idLocation);
+            }
+            if (keyLat != null && keyLog != null) {
+                tvLonlat.setText(keyLat + "|" + keyLog);
+            }
+            if (idLocationTime != null) {
+                tvIdLocationTime.setText(idLocationTime);
+            }
+            if (intent != null) {
+                if (idLocation != null) {
+                    Bundle bundle = new Bundle();
+                    bundle.putString("idLocation", tvIdLocation.getText().toString());
+                    weatherFragment.setArguments(bundle);
+                }
+                if (keyLat != null && keyLog != null) {
+                    Bundle bundle = new Bundle();
+                    bundle.putString("valueLog", keyLog);
+                    bundle.putString("valueLat", keyLat);
+                    weatherFragment.setArguments(bundle);
+                }
+
+                if (idLocationTime != null) {
+                    Bundle bundle = new Bundle();
+                    bundle.putString("id_locationTime", tvIdLocationTime.getText().toString());
+                    historyFragment.setArguments(bundle);
+                }
+            }
+            // End
+
+            viewPager.setAdapter(viewPagerAdapter);
+            tabLayout.setupWithViewPager(viewPager);
+        } else {
+            Toast.makeText(this, "No Internet, please connect internet!!!", Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
 
     public ArrayList<String> getLocate(ArrayList<Object> list) {
         HashMap<String, ArrayList<String>> hashMapLocate = new HashMap<>();
@@ -84,86 +175,6 @@ public class MainActivity extends AppCompatActivity {
         // End
 
         return listLocate;
-    }
-
-
-    //End
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        // Start: Access data offline
-        db = FirebaseFirestore.getInstance();
-        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .build();
-        db.setFirestoreSettings(settings);
-        // End
-
-        tabLayout = findViewById(R.id.tab_layout);
-        viewPager = findViewById(R.id.view_paper);
-        toolbar = findViewById(R.id.toolbar);
-        boolean flag = true;
-//        while (true) {
-            flag = isNetworkAvailable();
-//            if (flag) {
-//                break;
-//            } else {
-//                try {
-//                    Toast.makeText(this, "No Internet, please connect internet!!!", Toast.LENGTH_SHORT).show();
-//                    Thread.sleep(1000);
-//                    Log.d("data", "Internet failer");
-//
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-
-        if (flag) { // có internet
-            this.ID = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
-//        this.ID = "12345";
-            // Kiểm tra có id devices không
-            isHistory();
-
-
-//            setSupportActionBar(toolbar);
-
-
-            WeatherFragment weatherFragment = new WeatherFragment();
-            HistoryFragment historyFragment = new HistoryFragment();
-            MapFragment mapFragment = new MapFragment();
-
-
-            ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), 0);
-
-            viewPagerAdapter.AddFragment(weatherFragment, "WEATHER");
-            viewPagerAdapter.AddFragment(historyFragment, "HISTORY");
-            viewPagerAdapter.AddFragment(mapFragment, "MAP");
-
-            // Start: send lon lat lấy được từ Map fragment
-            Intent intent = getIntent();
-            String keyLog = intent.getStringExtra("keyLog"),
-                    keyLat = intent.getStringExtra("keyLat");
-            if (intent != null) {
-                Bundle bundle = new Bundle();
-                bundle.putString("valueLog", keyLog);
-                bundle.putString("valueLat", keyLat);
-                weatherFragment.setArguments(bundle);
-            }
-            // End
-
-
-            viewPager.setAdapter(viewPagerAdapter);
-            tabLayout.setupWithViewPager(viewPager);
-        }
-        else{
-            Toast.makeText(this, "No Internet, please connect internet!!!", Toast.LENGTH_LONG).show();
-            finish();
-        }
-
-
     }
 
     private boolean isNetworkAvailable() {
@@ -193,7 +204,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
-
 
     public void isHistory() {
         db = FirebaseFirestore.getInstance();
@@ -260,16 +270,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void setData(City
-                                 city, HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap) {
+    private void setData(City city, HashMap<String, ArrayList<DetailWeather>> detailWeatherHashMap) {
         this.city = city;
         this.detailWeatherHashMap = detailWeatherHashMap;
     }
 
-
     // Phân loại times theo từng date
-    private HashMap<String, ArrayList<DetailWeather>> fetchTimeOfDate
-    (ArrayList<Object> arrayList) {
+    private HashMap<String, ArrayList<DetailWeather>> fetchTimeOfDate(ArrayList<Object> arrayList) {
         ArrayList<DetailWeather> detailWeatherList = new ArrayList<>(); // list chứa toàn bộ data của date
         for (int i = 0; i < arrayList.size(); i++) {
             detailWeatherList.add(getWeatherOfList((HashMap<String, Object>) arrayList.get(i)));
@@ -334,10 +341,10 @@ public class MainActivity extends AppCompatActivity {
         String tempMin = hashMapMains.get("temp_min").toString();
         Mains mains = new Mains(hum, pre, tem, tempMax, tempMin);
 
-        HashMap<String, Object> hashMapSys= (HashMap<String, Object>) hashMap.get("sys");
+        HashMap<String, Object> hashMapSys = (HashMap<String, Object>) hashMap.get("sys");
         String country = hashMapSys.get("country").toString();
 
-        return new DetailWeather(dt_txt, clouds, rain, weathers, winds, mains,country);
+        return new DetailWeather(dt_txt, clouds, rain, weathers, winds, mains, country, id);
     }
 
     // Lấy toàn bộ data của city
@@ -365,6 +372,4 @@ public class MainActivity extends AppCompatActivity {
 
         return new City(coords, country, name, sunrise, sunset, timezone, id);
     }
-
-
 }

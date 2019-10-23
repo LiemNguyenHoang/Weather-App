@@ -38,8 +38,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
@@ -57,22 +59,18 @@ public class HistoryFragment extends Fragment {
     private DetailWeatherHistoryAdapter detaiWeatherHistoryAdapter;
     private ArrayList<DetailWeather> listOfWeathersHistory;
     FirebaseFirestore db;
+    String idLocate;
     //    String date;
-    int id;
     RecyclerView rv_weather_history;
     SwipeRefreshLayout swiperefresh;
     ProgressDialog progressDialog;
     TextView tvPositionHistory;
 
-
     public HistoryFragment() {
-        // Required empty public constructor
     }
 
-
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_history, container, false);
 
         swiperefresh = view.findViewById(R.id.swiperefreshHistory);
@@ -86,9 +84,116 @@ public class HistoryFragment extends Fragment {
         progressDialog.setCancelable(true);
 //        progressDialog.show();
 
+
         detaiWeatherHistoryAdapter = new DetailWeatherHistoryAdapter(getContext(), listOfWeathersHistory);
         showWeatherCurrent();
         rv_weather_history.setAdapter(detaiWeatherHistoryAdapter);
+
+        if (getArguments() != null) {
+            if (getArguments().getString("id_locationTime") != null) {
+                String string = getArguments().getString("id_locationTime");
+
+                if (string.equals("") == false) {
+
+                    String s[] = getArguments().getString("id_locationTime").split(",");
+                   idLocate = s[0];
+                    String date = s[1];
+                    String size = s[2];
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put(date, FieldValue.delete());
+
+                    //  Start: Xóa time trong datekk
+                    db = FirebaseFirestore.getInstance();
+                    db.collection(MainActivity.getID())
+                            .get()
+                            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                    ArrayList<String> listIdLocate = new ArrayList<>();
+                                    Map<String, Object> hashMapTime = new HashMap<>();
+                                    HashMap<String, HashMap<String, Object>> hashMapLocation = new HashMap<>();
+
+                                    for (QueryDocumentSnapshot document : task.getResult()) {
+                                        hashMapLocation.put(document.getId(), (HashMap<String, Object>) document.getData());
+                                    }
+
+                                    for (String s : hashMapLocation.keySet()) { // list key
+                                        listIdLocate.add(s);
+                                    }
+
+                                    if (listIdLocate.size() > 1) {
+                                        for (int i = 1; i < listIdLocate.size(); i++) {
+                                            if(listIdLocate.get(i).equals(idLocate)){
+                                                HashMap<String, Object> hashMap = hashMapLocation.get(listIdLocate.get(i));
+                                                if(hashMap.size()<=2){
+                                                    db = FirebaseFirestore.getInstance();
+                                                    db.collection(MainActivity.getID())
+                                                            .document(listIdLocate.get(i))
+                                                            .delete()
+                                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                            Log.d("data","Delete id locate complete");
+                                                        }
+                                                    });
+                                                }
+                                                break;
+                                            }
+//                                            ArrayList<String> listKey = new ArrayList<>();
+//                                            for (String s : hashMap.keySet()) {
+//                                                listKey.add(s);
+//                                            }
+//
+//                                            for (int index = 0; index < listKey.size(); index++) {
+//
+////                                    boolean flag = listKey.get(index).equals("0");
+//
+//                                                if (listKey.get(index).equals("0") == true) {
+//                                                    String asd = listIdLocate.get(i);
+////                                                    String date = listKey.get(index);
+////                                                    String id = listIdLocate.get(i);
+////                                                    String name = getNameLocate(Integer.parseInt(id));
+////
+////                                                    getWeatherCurrentDate(name, date);
+////                                       int iff = 0;
+//                                                }
+//                                            }
+
+                                        }
+
+                                        progressDialog.dismiss();
+                                        int i = 0;
+                                    }
+
+                                }
+                            });
+
+                    // xóa date
+//                    if (Integer.parseInt(size) == 2) {
+//                        db = FirebaseFirestore.getInstance();
+//                        db.collection(MainActivity.getID())
+//                                .document(id)
+//                                .delete()
+//                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+//                                    @Override
+//                                    public void onSuccess(Void aVoid) {
+//                                        Log.d("data", "Delete location id devie successfully!");
+//                                    }
+//                                })
+//                                .addOnFailureListener(new OnFailureListener() {
+//                                    @Override
+//                                    public void onFailure(@NonNull Exception e) {
+//                                        Log.w("data", "Delete location id devie failure!", e);
+//                                    }
+//                                });
+//                    }
+
+                    setArguments(null);
+                }
+            }
+
+
+        }
 
         swiperefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -103,6 +208,7 @@ public class HistoryFragment extends Fragment {
             }
         });
 
+
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         rv_weather_history.setLayoutManager(linearLayoutManager);
         return view;
@@ -111,52 +217,103 @@ public class HistoryFragment extends Fragment {
     private void showWeatherCurrent() {
         db = FirebaseFirestore.getInstance();
 
-        db.collection(MainActivity.getID()).get()
-                .addOnSuccessListener(
-                        new OnSuccessListener<QuerySnapshot>() {
-                            @Override
-                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                if (queryDocumentSnapshots.isEmpty()) {
-                                    Log.d("error", "Collection is empty");
-                                } else {
-                                    // Start: Lấy date của locate
-                                    ArrayList<Object> list = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
-                                    if (list.size() > 1) {
-                                        HashMap<Long, ArrayList<String>> hashMapTimeIdHistory = getTimeIdHistory(list);
-                                        // End
-
-                                        ArrayList<Long> listId = new ArrayList<>();
-                                        for (Long key : hashMapTimeIdHistory.keySet()) {
-                                            listId.add(key);
-                                        }
-                                        for (long id : listId) {
-                                            ArrayList<String> listTime = new ArrayList<>();
-                                            listTime = hashMapTimeIdHistory.get(id);
-                                            for (String date : listTime) {
-                                                String name = getNameLocate((int) id);
-
-                                                getWeatherCurrentDate(name, date);
-                                            }
-
-                                        }
-                                        int i = 0;
-                                    } else {
-                                        Toast.makeText(getContext(), "Không có History", Toast.LENGTH_LONG).show();
-                                    }
-
-//                                    progressDialog.dismiss();
-                                }
-                            }
-                        })
-                .addOnFailureListener(new OnFailureListener() {
+        db.collection(MainActivity.getID())
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
-                    public void onFailure(@NonNull Exception e) {
-                        //Toast.makeText(getActivity(),"Load history devices failure",Toast.LENGTH_SHORT).show();
-//                        progressDialog.dismiss();
-                        tvPositionHistory.setText("Load history devices failure");
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        ArrayList<String> listIdLocate = new ArrayList<>();
+                        Map<String, Object> hashMapTime = new HashMap<>();
+                        HashMap<String, HashMap<String, Object>> hashMapLocation = new HashMap<>();
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            hashMapLocation.put(document.getId(), (HashMap<String, Object>) document.getData());
+                        }
+
+                        for (String s : hashMapLocation.keySet()) { // list key
+                            listIdLocate.add(s);
+                        }
+
+                        if (listIdLocate.size() > 1) {
+                            for (int i = 1; i < listIdLocate.size(); i++) {
+                                HashMap<String, Object> hashMap = hashMapLocation.get(listIdLocate.get(i));
+                                ArrayList<String> listKey = new ArrayList<>();
+                                for (String s : hashMap.keySet()) {
+                                    listKey.add(s);
+                                }
+
+                                for (int index = 0; index < listKey.size(); index++) {
+
+//                                    boolean flag = listKey.get(index).equals("0");
+
+                                    if (listKey.get(index).equals("0") == false) {
+                                        String date = listKey.get(index);
+                                        String id = listIdLocate.get(i);
+                                        String name = getNameLocate(Integer.parseInt(id));
+
+                                        getWeatherCurrentDate(name, date);
+//                                       int iff = 0;
+                                    }
+                                }
+
+                            }
+
+                            progressDialog.dismiss();
+                            int i = 0;
+                        } else {
+
+                            progressDialog.dismiss();
+                            Toast.makeText(getContext(), "Không có History", Toast.LENGTH_LONG).show();
+
+                        }
 
                     }
                 });
+//                .addOnSuccessListener(
+//                        new OnSuccessListener<QuerySnapshot>() {
+//                            @Override
+//                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+//                                if (queryDocumentSnapshots.isEmpty()) {
+//                                    Log.d("error", "Collection is empty");
+//                                } else {
+//                                    // Start: Lấy date của locate
+//                                    ArrayList<Object> list = (ArrayList<Object>) queryDocumentSnapshots.toObjects(Object.class);
+//                                    if (list.size() > 1) {
+//                                        HashMap<Long, ArrayList<String>> hashMapTimeIdHistory = getTimeIdHistory(list);
+//                                        // End
+//
+//                                        ArrayList<Long> listId = new ArrayList<>();
+//                                        for (Long key : hashMapTimeIdHistory.keySet()) {
+//                                            listId.add(key);
+//                                        }
+//                                        for (long id : listId) {
+//                                            ArrayList<String> listTime = new ArrayList<>();
+//                                            listTime = hashMapTimeIdHistory.get(id);
+//                                            for (String date : listTime) {
+//                                                String name = getNameLocate((int) id);
+//
+//                                                getWeatherCurrentDate(name, date);
+//                                            }
+//
+//                                        }
+//                                        int i = 0;
+//                                    } else {
+//                                        Toast.makeText(getContext(), "Không có History", Toast.LENGTH_LONG).show();
+//                                    }
+//
+////                                    progressDialog.dismiss();
+//                                }
+//                            }
+//                        })
+//                .addOnFailureListener(new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception e) {
+//                        //Toast.makeText(getActivity(),"Load history devices failure",Toast.LENGTH_SHORT).show();
+////                        progressDialog.dismiss();
+//                        tvPositionHistory.setText("Load history devices failure");
+//
+//                    }
+//                });
 
 
     }
@@ -184,19 +341,30 @@ public class HistoryFragment extends Fragment {
         String main = (String) hashMap1.get("main");
         Weathers weathers = new Weathers(des, icon, id, main);
         // wind
-        HashMap<String, Object> hashMapWinds = (HashMap<String, Object>) hashMap.get("wind");
-        String deg = hashMapWinds.get("deg").toString();
-        String speed = hashMapWinds.get("speed").toString();
-        Winds winds = new Winds(deg, speed);
+        Winds winds;
+        try {
+            HashMap<String, Object> hashMapWinds = (HashMap<String, Object>) hashMap.get("wind");
+            String deg = hashMapWinds.get("deg").toString();
+            if (deg == null)
+                deg = "0.0";
+            String speed = hashMapWinds.get("speed").toString();
+            if (speed == null)
+                speed = "0.0";
+            winds = new Winds(deg, speed);
+        } catch (Exception e) {
+            winds = new Winds("0", "0");
+        }
         // temp
         HashMap<String, Object> hashMapMains = (HashMap<String, Object>) hashMap.get("main");
         String tem = hashMapMains.get("temp").toString();
         Mains mains = new Mains(tem);
 
-        HashMap<String, Object> hashMapSys= (HashMap<String, Object>) hashMap.get("sys");
+        HashMap<String, Object> hashMapSys = (HashMap<String, Object>) hashMap.get("sys");
         String country = hashMapSys.get("country").toString();
 
-        return new DetailWeather(dt_txt, rain, weathers, winds, mains, locate,country);
+//        String id = hashMap.get("id");
+        String idInt = hashMap.get("id").toString();
+        return new DetailWeather(dt_txt, rain, weathers, winds, mains, locate, country, idInt);
 //        return new DetailWeather( );
     }
 
@@ -248,6 +416,25 @@ public class HistoryFragment extends Fragment {
                         } else {
                             Log.d("error", "No document!");
                         }
+                    }
+                });
+    }
+
+    public void deleteLocationTime(String id, String date) {
+        db = FirebaseFirestore.getInstance();
+        db.collection(MainActivity.getID())
+                .document(id)
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("data", "Delete location id devie successfully!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w("data", "Delete location id devie failure!", e);
                     }
                 });
     }
